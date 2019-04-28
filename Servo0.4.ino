@@ -28,7 +28,7 @@ int count = 6; // repeat every 6 hours
 //int tag = 0;
 int ENA = 4;
 int IN1 = 0;
-
+int angle = 0;
 void setup() {
   Serial.begin(115200);
   WiFi.begin(ssid, password);
@@ -142,7 +142,7 @@ void loop()
   }
   if(savedHour == currentHour && savedMinute == currentMinute)
   {
-    MovingOn(-180);
+    MovingOn(0);
     WateringOn(Delayh);
     MovingOn(180);
     WateringOn(Delayv);
@@ -162,7 +162,7 @@ void handleLogin()
     server.send(400, "text/plain", "400: Invalid Request");// Print Data on screen
     return;
   }
-  if(server.arg("uname") == "Sam_simsim" && server.arg("pass") == "tfr10sj1") 
+  if(server.arg("uname") == "sam_simsim"||server.arg("uname") == "Sam_simsim" && server.arg("pass") == "7754") 
   { // If username and the password are correct
     handleserver();
   } 
@@ -171,46 +171,105 @@ void handleLogin()
   }
 }
 void handleNotFound(){
-  if(server.arg("action")== "v" || server.arg("action")== "V")
+  if(server.arg("action")!= "x" || server.arg("action")!= "X" || server.arg("action")!= "tt"  || server.arg("action")!= NULL )
     {
+      int a = 0;
+      int b = 0;
       Direction = "v";
-      MovingOn(180);
+      //MovingOn(server.arg("action").toInt());
+      if (server.arg("action").toInt()>= 0)
+      {
+       for(a = angle ; a < server.arg("action").toInt(); a += 1)    // command to move from 0 degrees to 180 degrees 
+          {  
+            servo.attach(5);                                 
+            servo.write(a);                 //command to rotate the servo to the specified angle
+            delay(100);  
+            Serial.println("a :"); 
+            Serial.println(a); 
+            angle = a;  
+            servo.detach();                  
+          }
+      }
+     if (server.arg("action").toInt()< 0)
+      {
+       for(int b = angle; b >=  server.arg("action").toInt(); b -= 1)     // command to move from 180 degrees to 0 degrees 
+          {    
+            servo.attach(5);                             
+            servo.write(b);              //command to rotate the servo to the specified angle
+            delay(100);  
+            Serial.println("b :"); 
+            Serial.println(b); 
+            angle = b; 
+            servo.detach();                     
+          }
+      }
+      
+     
     }
-    if(server.arg("action")== "h" || server.arg("action")== "H")
-    {
-      Direction = "h";
-      MovingOn(-180);
-    }
-    if(server.arg("action") == "0" && Direction == "v")
+//  if(server.arg("action")== "h" || server.arg("action")== "H")
+//    {
+//      Direction = "h";
+//      MovingOn(-180);
+//    }
+  if(server.arg("action") == "x" && Direction == "v")
     {
       WateringOn(Delayv);
     }
-    else if(server.arg("action") == "0" && Direction == "h")
+  if(server.arg("action") == "x" && Direction == "h")
     {
       WateringOn(Delayh);
     }
-     if(!server.hasArg("AutomaticWatering")&& server.arg("hour") != "" && server.arg("minute")!= "")
-      {
-        Hour = server.arg("hour");
-        Minute = server.arg("minute");
-      }
-     if(!server.hasArg("Counter") && server.arg("counter")!= "")
-      {
-        count = server.arg("counter").toInt();
-        savedHour = oldHour;
-        savedMinute = oldMinute;
-        NextTime();
-      }
-      if(!server.hasArg("Counter") && server.arg("Delayv")!= "")
-      {
-        Delayv = server.arg("Delayv");
-      }
-      if(!server.hasArg("Counter") && server.arg("Delayh")!= "")
-      {
-        Delayh = server.arg("Delayh");
-      }
-      handleserver();
-     }
+  if (server.arg("action")== "tt")
+  {
+    int angle = 0;  
+      
+          // attach the signal pin of servo to pin9 of arduino
+    for(angle = 0; angle < 120; angle += 1)    // command to move from 0 degrees to 180 degrees 
+    {  
+      servo.attach(5);                                 
+      servo.write(angle);                 //command to rotate the servo to the specified angle
+      delay(100);  
+      Serial.println(angle);   
+      servo.detach();                  
+    } 
+   
+    delay(1000);
+    
+    for(angle = 120; angle>= 1; angle -= 1)     // command to move from 180 degrees to 0 degrees 
+    {    
+      servo.attach(5);                             
+      servo.write(angle);              //command to rotate the servo to the specified angle
+      delay(100);   
+      Serial.println(angle);  
+      servo.detach();                     
+    } 
+      delay(1000);
+      
+    }
+    
+    
+   if(!server.hasArg("AutomaticWatering")&& server.arg("hour") != "" && server.arg("minute")!= "")
+    {
+      Hour = server.arg("hour");
+      Minute = server.arg("minute");
+    }
+   if(!server.hasArg("Counter") && server.arg("counter")!= "")
+    {
+      count = server.arg("counter").toInt();
+      savedHour = oldHour;
+      savedMinute = oldMinute;
+      NextTime();
+    }
+    if(!server.hasArg("Counter") && server.arg("Delayv")!= "")
+    {
+      Delayv = server.arg("Delayv");
+    }
+    if(!server.hasArg("Counter") && server.arg("Delayh")!= "")
+    {
+      Delayh = server.arg("Delayh");
+    }
+    handleserver();
+   }
 void handleAction()
 {
   server.send(200, "text/html", "<h1>Action = " +server.arg("action")+"</h1>");
