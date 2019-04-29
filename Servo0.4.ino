@@ -35,7 +35,6 @@ void setup() {
   // set all the motor control pins to outputs
   pinMode(ENA, OUTPUT);
   pinMode(IN1, OUTPUT);
-  
   while (WiFi.status() != WL_CONNECTED) 
     {
       delay(500);
@@ -43,7 +42,7 @@ void setup() {
     }
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());  //Print the local IP
-  
+ 
     server.on("/", HTTP_GET, handleRoot);        // Call 'handleRoot' function
     server.on("/login", HTTP_POST, handleLogin); // Call 'handleLogin' function when a POST request made to "/login"
     server.onNotFound(handleNotFound);           // call function "handleNotFound" when unknown URI requested
@@ -175,11 +174,13 @@ void handleNotFound(){
     {
       int a = 0;
       int b = 0;
+      int limit = 0;
       Direction = "v";
       //MovingOn(server.arg("action").toInt());
-      if (server.arg("action").toInt()>= 0)
+      if (server.arg("action").toInt()> 0)
       {
-       for(a = angle ; a < server.arg("action").toInt(); a += 1)    // command to move from 0 degrees to 180 degrees 
+        limit = (angle + server.arg("action").toInt())> 129 ?  129 : ( angle + server.arg("action").toInt());
+       for(a = angle ; a <= limit; a += 1)    // command to move from 0 degrees to 180 degrees 
           {  
             servo.attach(5);                                 
             servo.write(a);                 //command to rotate the servo to the specified angle
@@ -190,9 +191,10 @@ void handleNotFound(){
             servo.detach();                  
           }
       }
-     if (server.arg("action").toInt()< 0)
+     else if (server.arg("action").toInt()<= 0 )
       {
-       for(int b = angle; b >=  server.arg("action").toInt(); b -= 1)     // command to move from 180 degrees to 0 degrees 
+        limit = (angle + server.arg("action").toInt())< 52 ?  52 : (angle + server.arg("action").toInt());
+       for(int b = angle; b >= limit; b -= 1)     // command to move from 180 degrees to 0 degrees 
           {    
             servo.attach(5);                             
             servo.write(b);              //command to rotate the servo to the specified angle
@@ -202,8 +204,10 @@ void handleNotFound(){
             angle = b; 
             servo.detach();                     
           }
+          
       }
-      
+      Serial.println("angle :"); 
+      Serial.println(angle); 
      
     }
 //  if(server.arg("action")== "h" || server.arg("action")== "H")
