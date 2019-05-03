@@ -18,6 +18,10 @@ String Delayh = "1500";
 String savedHour = "06";
 String savedMinute = "30";
 
+int a = 0;
+int b = 0;
+int limit = 0;
+
 ESP8266WebServer server(80); // Create a webserver object listens HTTP request on port 80
 
 const char* ssid = "ComHemF17542";
@@ -81,7 +85,6 @@ void setup() {
     }
     http.end();   //Close connection
 }
-
 void loop() 
 {
   server.handleClient();                     // Listen for HTTP requests
@@ -170,51 +173,44 @@ void handleLogin()
   }
 }
 void handleNotFound(){
-  if(server.arg("action")!= "x" || server.arg("action")!= "X" || server.arg("action")!= "tt"  || server.arg("action")!= NULL )
+  if(server.arg("action")!= "x" && server.arg("action")!= "X" && server.arg("action")!= "tt"  && server.arg("action")!= NULL && server.arg("action")!= "0" && server.arg("action")!= "vi")
     {
-      int a = 0;
-      int b = 0;
-      int limit = 0;
+      
       Direction = "v";
-      //MovingOn(server.arg("action").toInt());
-      if (server.arg("action").toInt()> 0)
-      {
-        limit = (angle + server.arg("action").toInt())> 129 ?  129 : ( angle + server.arg("action").toInt());
-       for(a = angle ; a <= limit; a += 1)    // command to move from 0 degrees to 180 degrees 
-          {  
-            servo.attach(5);                                 
-            servo.write(a);                 //command to rotate the servo to the specified angle
-            delay(100);  
-            Serial.println("a :"); 
-            Serial.println(a); 
-            angle = a;  
-            servo.detach();                  
-          }
-      }
-     else if (server.arg("action").toInt()<= 0 )
-      {
-        limit = (angle + server.arg("action").toInt())< 52 ?  52 : (angle + server.arg("action").toInt());
-       for(int b = angle; b >= limit; b -= 1)     // command to move from 180 degrees to 0 degrees 
-          {    
-            servo.attach(5);                             
-            servo.write(b);              //command to rotate the servo to the specified angle
-            delay(100);  
-            Serial.println("b :"); 
-            Serial.println(b); 
-            angle = b; 
-            servo.detach();                     
-          }
-          
-      }
-      Serial.println("angle :"); 
-      Serial.println(angle); 
-     
+      servo.attach(15);
+      servo.write(server.arg("action").toInt());      
     }
-//  if(server.arg("action")== "h" || server.arg("action")== "H")
-//    {
-//      Direction = "h";
-//      MovingOn(-180);
-//    }
+
+    if(server.arg("action") == "Bl" || server.arg("action") == "bl" )
+        {
+          servo.attach(15);
+          delay(2000);
+          servo.write(0);
+          delay(5000);
+          servo.write(108);
+          delay(5000);
+          servo.detach();
+        }
+    if(server.arg("action") == "VI" || server.arg("action") == "vi" )
+    {
+      servo.attach(15);
+      delay(2000);
+      servo.write(0);
+      delay(5000);
+      servo.write(55);
+      delay(5000);
+      servo.detach();
+    }
+     if(server.arg("action") == "RO" || server.arg("action") == "ro" )
+    {
+      servo.attach(15);
+      delay(2000);
+      servo.write(0);
+      delay(5000);
+      servo.write(85);
+      delay(5000);
+      servo.detach();
+    }
   if(server.arg("action") == "x" && Direction == "v")
     {
       WateringOn(Delayv);
@@ -225,30 +221,24 @@ void handleNotFound(){
     }
   if (server.arg("action")== "tt")
   {
-    int angle = 0;  
-      
+    double angle = 0;  
+    servo.attach(15); 
           // attach the signal pin of servo to pin9 of arduino
-    for(angle = 0; angle < 120; angle += 1)    // command to move from 0 degrees to 180 degrees 
-    {  
-      servo.attach(5);                                 
+    for(angle = 0; angle < 180; angle += 1)    // command to move from 0 degrees to 180 degrees 
+    {                                 
       servo.write(angle);                 //command to rotate the servo to the specified angle
-      delay(100);  
-      Serial.println(angle);   
-      servo.detach();                  
+      delay(100);                
     } 
-   
+    servo.detach();
     delay(1000);
-    
-    for(angle = 120; angle>= 1; angle -= 1)     // command to move from 180 degrees to 0 degrees 
-    {    
-      servo.attach(5);                             
+    servo.attach(15); 
+    for(angle = 180; angle >= 1; angle -= 1)     // command to move from 180 degrees to 0 degrees 
+    {                                
       servo.write(angle);              //command to rotate the servo to the specified angle
-      delay(100);   
-      Serial.println(angle);  
-      servo.detach();                     
+      delay(100);                        
     } 
       delay(1000);
-      
+      servo.detach();
     }
     
     
