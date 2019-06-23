@@ -12,12 +12,15 @@ String oldMinute = "";
 String Hour = "06";
 String Minute = "30";
 
-String Direction = "v";
+String Direction = "vi";
 String Delayv = "1500";
 String Delayh = "1500";
-String savedHour = "06";
-String savedMinute = "30";
-
+String newHour = "06";
+String newMinute = "30";
+int angle = 0;
+int MAX_angle = 105;
+int MIN_angle = 9;
+int MID_angle = 32;
 int a = 0;
 int b = 0;
 int limit = 0;
@@ -32,7 +35,6 @@ int count = 6; // repeat every 6 hours
 //int tag = 0;
 int ENA = 4;
 int IN1 = 0;
-int angle = 0;
 void setup() {
   Serial.begin(115200);
   WiFi.begin(ssid, password);
@@ -142,7 +144,7 @@ void loop()
     }
     http.end();   //Close connection
   }
-  if(savedHour == currentHour && savedMinute == currentMinute)
+  if(newHour == currentHour && newMinute == currentMinute)
   {
     MovingOn(0);
     WateringOn(Delayh);
@@ -173,75 +175,69 @@ void handleLogin()
   }
 }
 void handleNotFound(){
-  if(server.arg("action")!= "x" && server.arg("action")!= "X" && server.arg("action")!= "tt"  && server.arg("action")!= NULL && server.arg("action")!= "0" && server.arg("action")!= "vi")
-    {
-      
-      Direction = "v";
-      servo.attach(15);
-      servo.write(server.arg("action").toInt());      
-    }
-
-    if(server.arg("action") == "Bl" || server.arg("action") == "bl" )
-        {
-          servo.attach(15);
-          delay(2000);
-          servo.write(0);
-          delay(5000);
-          servo.write(108);
-          delay(5000);
-          servo.detach();
-        }
-    if(server.arg("action") == "VI" || server.arg("action") == "vi" )
-    {
-      servo.attach(15);
-      delay(2000);
-      servo.write(0);
-      delay(5000);
-      servo.write(55);
-      delay(5000);
-      servo.detach();
-    }
-     if(server.arg("action") == "RO" || server.arg("action") == "ro" )
-    {
-      servo.attach(15);
-      delay(2000);
-      servo.write(0);
-      delay(5000);
-      servo.write(85);
-      delay(5000);
-      servo.detach();
-    }
-  if(server.arg("action") == "x" && Direction == "v")
+  if(server.arg("action")== "x" || server.arg("action")== "X" )
     {
       WateringOn(Delayv);
     }
-  if(server.arg("action") == "x" && Direction == "h")
+  if(server.arg("action") == "Bl" || server.arg("action") == "bl" )
     {
-      WateringOn(Delayh);
+      dirandtime(80);
+    }
+  if(server.arg("action") == "VI" || server.arg("action") == "vi" )
+    {
+      dirandtime(-180);
+    }
+  if(server.arg("action") == "RO" || server.arg("action") == "ro" )
+    {
+      dirandtime(60);
     }
   if (server.arg("action")== "tt")
-  {
-    double angle = 0;  
+  {  
     servo.attach(15); 
           // attach the signal pin of servo to pin9 of arduino
-    for(angle = 0; angle < 180; angle += 1)    // command to move from 0 degrees to 180 degrees 
+    for(angle = 13; angle < MAX_angle; angle += 1)    // command to move from 0 degrees to 180 degrees 
     {                                 
       servo.write(angle);                 //command to rotate the servo to the specified angle
       delay(100);                
     } 
     servo.detach();
-    delay(1000);
+    delay(1500);
+    //Serial.println(angle);
+  }
+  if(server.arg("action")== "-tt"){
     servo.attach(15); 
-    for(angle = 180; angle >= 1; angle -= 1)     // command to move from 180 degrees to 0 degrees 
+    for(angle ; angle >= MIN_angle; angle -= 1)     // command to move from 180 degrees to 0 degrees 
     {                                
       servo.write(angle);              //command to rotate the servo to the specified angle
       delay(100);                        
     } 
-      delay(1000);
+      delay(1500);
       servo.detach();
-    }
-    
-    
+      //Serial.println(angle);
+    } 
+  if(server.arg("action")== "t")
+    {
+      servo.attach(15); 
+      if(angle > MID_angle)
+      {
+        for(angle ; angle >= MID_angle; angle -= 1)     // command to move from 180 degrees to 0 degrees 
+        {                                
+          servo.write(angle);              //command to rotate the servo to the specified angle
+          delay(100);                        
+        } 
+      }
+      else
+       {
+          for(angle ; angle <= MID_angle; angle += 1)     // command to move from 180 degrees to 0 degrees 
+        {                                
+          servo.write(angle);              //command to rotate the servo to the specified angle
+          delay(100);                        
+        }  
+       }
+        delay(1500);
+        servo.detach();
+      //  Serial.println(angle);
+    } 
    if(!server.hasArg("AutomaticWatering")&& server.arg("hour") != "" && server.arg("minute")!= "")
     {
       Hour = server.arg("hour");
@@ -250,8 +246,8 @@ void handleNotFound(){
    if(!server.hasArg("Counter") && server.arg("counter")!= "")
     {
       count = server.arg("counter").toInt();
-      savedHour = oldHour;
-      savedMinute = oldMinute;
+      newHour = oldHour;
+      newMinute = oldMinute;
       NextTime();
     }
     if(!server.hasArg("Counter") && server.arg("Delayv")!= "")
@@ -282,26 +278,72 @@ void WateringOn(String Delay)
 }
 void MovingOn(int angle)
 {
-  servo.attach(5);
+  servo.attach(15);
   servo.write(angle);
   delay(1500);
   servo.detach();
 }
 void NextTime()
 {
- if (24 - savedHour.toInt() >= count)
- {
-  savedHour = oldHour.toInt() + count;
-  Hour = savedHour;
-  Minute = savedMinute;
- }
- else
- {
-  count - (24 - savedHour.toInt());
-  savedHour = count;
-  Hour = savedHour;
-  Minute = savedMinute;
- }
+  int tot = count + oldHour.toInt();
+
+  if(tot <= 24)
+  {
+    newHour = tot;
+    Hour = newHour;
+    Minute = newMinute;
+  }
+  else
+  {
+   newHour = tot - 24;
+   Hour = newHour;
+   Minute = newMinute;
+  }
+ Serial.print("count: ");
+ Serial.println(count);
+ Serial.print("newHour: ");
+ Serial.println(newHour);
+ Serial.print("newMinute: ");
+ Serial.println(newMinute);
+ 
 }
 
+void dirandtime(int vinkel)
+{
+  servo.attach(15);
+  Serial.println("Direction: ");
+  Serial.print(Direction);  
+ // delay(5000);
+  servo.write(0);
+ // delay(9000);
+  servo.write(vinkel);
+  Serial.println("vinkel: ");
+  Serial.print(vinkel);  
+  switch (vinkel) 
+      {
+        case -180:     
+//          delay(6000);
+//          Direction = "vi";
+//          Serial.println("Direction: ");
+//          Serial.print(Direction);
+
+          servo.detach();
+          break;
+        case 80:
+          delay(5000);  
+          Direction = "bl";
+          Serial.println("Direction: ");
+          Serial.print(Direction); 
+          servo.detach();
+          break;
+        case 60:
+          delay(3000);
+          Direction = "ro";
+          Serial.println("Direction: ");
+          Serial.print(Direction);   
+          servo.detach();
+          break;
+      }
+      servo.detach();
+}
 
