@@ -286,16 +286,16 @@ void MovingOn(int angle)
 void NextTime()
 {
   int tot = count + oldHour.toInt();
-
   if(tot <= 24)
   {
-    newHour = tot;
+    newHour = (String)tot;
+    if(newHour == "24"){ newHour = "00" ;}
     Hour = newHour;
     Minute = newMinute;
   }
   else
   {
-   newHour = tot - 24;
+   newHour = (String)(tot - 24);
    Hour = newHour;
    Minute = newMinute;
   }
