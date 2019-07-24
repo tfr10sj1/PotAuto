@@ -2,7 +2,7 @@
 #include <ESP8266WiFi.h>;
 #include <ESP8266HTTPClient.h>;
 #include <ESP8266WebServer.h>
-
+String cDay = ""; 
 String oldYear = "";
 String oldMonth = "";
 String oldDay = "";
@@ -24,7 +24,8 @@ int MID_angle = 32;
 int a = 0;
 int b = 0;
 int limit = 0;
-
+int timeflag = 0;
+static String History[32];
 ESP8266WebServer server(80); // Create a webserver object listens HTTP request on port 80
 
 const char* ssid = "ComHemF17542";
@@ -134,6 +135,7 @@ void loop()
        }
         if(currentDay != oldDay){
           oldDay = currentDay;
+          cDay = currentDay;
         }
         if(currentHour != oldHour){
           oldHour = currentHour;
@@ -144,18 +146,25 @@ void loop()
     }
     http.end();   //Close connection
   }
-  if(newHour == currentHour && newMinute == currentMinute)
+  if(newHour == currentHour && newMinute == currentMinute && timeflag == 0)
   {
-    MovingOn(0);
-    WateringOn(Delayh);
-    MovingOn(180);
+    //MovingOn(0);
+    //WateringOn(Delayh);
+    //MovingOn(180);
     WateringOn(Delayv);
     NextTime();
-    delay(60000);    //Send a request every 30 seconds
+    timeflag = 1;
+    Serial.println("History: ");
+    ShowHistory();
+    delay(600);    //Send a request every 30 seconds
   } 
+  else if(newHour != currentHour || newMinute != currentMinute && timeflag == 1)
+  {
+    timeflag = 0;
+  }
 }
 void handleRoot() 
-{                          // When URI / is requested, make login Webpage
+{// When URI / is requested, make login Webpage
   server.send(200, "text/html", "<form action=\"/login\" method=\"POST\"><input type=\"text\" name=\"uname\" placeholder=\"Username\"></br><input type=\"password\" name=\"pass\" placeholder=\"Password\"></br><input type=\"submit\" value=\"Login\"></form>");
 }
 
@@ -266,7 +275,10 @@ void handleAction()
 }
 void handleserver()
 {
-  server.send(200, "text/html", "<h1><form action=\"/Action\" method=\"POST\"><input type=\"text\" name=\"action\" placeholder=\"Action\"><br><input type=\"submit\" value=\"Send Command\"></form></h1><p>Date: "+ oldYear +"-"+ oldMonth + "-" + oldDay + " Time: " + oldHour + ":" + oldMinute+ "<h1><form action=\"/Counter\" method=\"POST\"><input type=\"text\" name=\"counter\" placeholder=\"Start every N hours \"><input type=\"text\" name=\"Delayv\" placeholder=\"VDir_Defualt = 1500 ms \"><input type=\"text\" name=\"Delayh\" placeholder=\"HDir_Defualt = 1500 ms \"><br><input type=\"submit\" value=\"Send Command\"></form></h1><p> Program will repeat every : "+ count+" Hours </p><p>Next Watering Time is: "+Hour+ ":"+Minute+"</p><p>Delayv is: "+Delayv+"</p><p>Delayh is: "+Delayh+"</p>");
+  HTTPClient http;  //Declare an object of class HTTPClient
+  //http.begin("http://188.150.76.88:2222/jsfs.html");  //Specify request destination
+  int httpCode = http.GET();  //Send the request
+  server.send(200, "text/html", "<h1><form action=\"/Action\" method=\"POST\"><input type=\"text\" name=\"action\" placeholder=\"Action\"><br><input type=\"submit\" value=\"Send Command\"></form></h1><p>Date: "+ oldYear +"-"+ oldMonth + "-" + oldDay + " Time: " + oldHour + ":" + oldMinute+ "<h1><form action=\"/Counter\" method=\"POST\"><input type=\"text\" name=\"counter\" placeholder=\"Start every N hours \"><input type=\"text\" name=\"Delayv\" placeholder=\"VDir_Defualt = 1500 ms \"><input type=\"text\" name=\"Delayh\" placeholder=\"HDir_Defualt = 1500 ms \"><br><input type=\"submit\" value=\"Send Command\"></form></h1><p> Program will repeat every : "+ count+" Hours </p><p>Next Watering Time is: "+Hour+ ":"+Minute+"</p><p>Delayv is: "+Delayv+"</p><p>Delayh is: "+Delayh+"</p><p>History: "+History[0]+"</p><p>"+History[1]+"</p><p>"+History[2]+"</p><p>"+History[3]+"</p><p>"+History[4]+"</p><p>"+History[5]+"</p><p>"+History[6]+"</p><p>"+History[7]+"</p><p>"+History[8]+"</p><p>"+History[9]+"</p><p>"+History[10]+"</p><p>"+History[11]+"</p><p>"+History[12]+"</p><p>"+History[13]+"</p><p>"+History[14]+"</p><p>"+History[15]+"</p><p>"+History[16]+"</p><p>"+History[17]+"</p><p>"+History[18]+"</p><p>"+History[19]+"</p><p>"+History[20]+"</p><p>"+History[21]+"</p><p>"+History[22]+"</p><p>"+History[23]+"</p><p>"+History[24]+"</p><p>"+History[25]+"</p><p>"+History[26]+"</p><p>"+History[27]+"</p><p>"+History[28]+"</p><p>"+History[29]+"</p><p>"+History[30]+"</p><p>"+History[31]+"</p>");
 }
 void WateringOn(String Delay)
 {
@@ -289,25 +301,33 @@ void NextTime()
   if(tot <= 24)
   {
     newHour = (String)tot;
-    if(newHour == "24"){ newHour = "00" ;}
+    if(newHour == "24"){ newHour = "00";}
+    if(newHour != "24" && newHour.length() == 1){newHour = ('0'+newHour);}
     Hour = newHour;
     Minute = newMinute;
   }
   else
   {
    newHour = (String)(tot - 24);
+   if(newHour != "24" && newHour.length() == 1){newHour = ('0'+newHour);}
    Hour = newHour;
    Minute = newMinute;
+   
   }
- Serial.print("count: ");
- Serial.println(count);
- Serial.print("newHour: ");
- Serial.println(newHour);
- Serial.print("newMinute: ");
- Serial.println(newMinute);
- 
 }
 
+void ShowHistory()
+{
+  if(oldDay.toInt() == cDay.toInt())
+  {
+     History[oldDay.toInt()] = History[oldDay.toInt()]+"\n"+oldMonth+"-"+oldDay+"-"+oldHour +":"+ newMinute + "\n";
+  } 
+  else
+  {
+    History[oldDay.toInt()] = History[oldDay.toInt()]+"\n"+oldMonth+"-"+oldDay+"-"+oldHour +":"+ newMinute + "\n";
+  }
+  handleserver();
+}
 void dirandtime(int vinkel)
 {
   servo.attach(15);
