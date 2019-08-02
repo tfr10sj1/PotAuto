@@ -42,20 +42,27 @@ int count = 6; // repeat every 6 hours
 int ENA = 4;
 int IN1 = 0;
 void setup() {
+  
+  #ifndef ESP8266
+  while (!Serial); // for Leonardo/Micro/Zero
+  #endif
+
   Serial.begin(115200);
-    if (! rtc.begin()) 
+  
+  if (! rtc.begin()) 
   {
     Serial.println("Couldn't find RTC");
     while (1);
   }
   
-  if (rtc.lostPower()) {
+  if (rtc.lostPower()) 
+  {
     Serial.println("RTC lost power, lets set the time!");
     // following line sets the RTC to the date & time this sketch was compiled
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     // This line sets the RTC with an explicit date & time, for example to set
     // January 21, 2014 at 3am you would call:
-    // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
+    rtc.adjust(DateTime(2019, 8, 2, 22, 24, 0));
   }
   
   WiFi.begin(ssid, password);
@@ -109,8 +116,7 @@ void setup() {
     http.end();   //Close connection
 }
 void loop() 
-{
-  DateTime now = rtc.now();
+{   
   server.handleClient();                     // Listen for HTTP requests
   handleserver();
   String currentYear = "";
@@ -118,14 +124,16 @@ void loop()
   String currentDay = "";
   String currentHour = "";
   String currentMinute = "";
+  
   if (WiFi.status() == WL_CONNECTED) 
   { //Check WiFi connection status
+    static String payload;
     HTTPClient http;  //Declare an object of class HTTPClient
-    http.begin("http://worldclockapi.com/api/jsonp/cet/now?callback=mycallback");  //Specify request destination
+    http.begin("http://worldclockapi.com/api/jsonp/cet/now?callback=mycallback");//"http://worldclockapi.com/api/jsonp/cet/now?callback=mycallback");  //Specify request destination
     int httpCode = http.GET();  //Send the request
     if (httpCode > 0) //Check the returning code
     { 
-      String payload = http.getString();   //Get the request response payload
+      payload = http.getString();   //Get the request response payload
       for(int i = 41; i< 60; i++)
       { 
         if(i > 40 && i < 45)
@@ -149,24 +157,39 @@ void loop()
             currentMinute = currentMinute + payload[i];
           } 
        }
-       if(currentYear != oldYear){
-          oldYear = currentYear;
-       }
-       if(currentMonth != oldMonth){
-          oldMonth = currentMonth;
-       }
-        if(currentDay != oldDay){
-          oldDay = currentDay;
-          cDay = currentDay;
-        }
-        if(currentHour != oldHour){
-          oldHour = currentHour;
-        }
-        if(currentMinute != oldMinute){
-          oldMinute = currentMinute;
-        }
     }
     http.end();   //Close connection
+    if(payload.length()< 270)
+    {
+      DateTime now = rtc.now();
+      currentYear = String(now.year());
+      currentMonth = String(now.month());    
+      currentDay = String(now.day());
+      currentHour = String(now.hour());
+      currentMinute = String(now.minute());
+    }
+    if(currentYear != oldYear)
+    {
+    oldYear = currentYear;
+    }
+    if(currentMonth != oldMonth)
+    {
+    oldMonth = currentMonth;
+    }
+    if(currentDay != oldDay)
+    {
+    oldDay = currentDay;
+    cDay = currentDay;
+    }
+    if(currentHour != oldHour)
+    {
+    oldHour = currentHour;
+    }
+    if(currentMinute != oldMinute)
+    {
+    oldMinute = currentMinute;
+    }  
+    
   }
   if(newHour == currentHour && newMinute == currentMinute && timeflag == 0)
   {
@@ -340,6 +363,13 @@ void NextTime()
 
 void ShowHistory()
 {
+  if(oldDay.toInt() == 1)
+  {
+    for(int i = 2; i < 32; i++)
+    {
+      History[i] = " ";
+    }
+  }
   History[oldDay.toInt()] = History[oldDay.toInt()]+"\n"+oldMonth+"-"+oldDay+"-"+oldHour +":"+ newMinute + "\n";
   handleserver();
 }
@@ -381,4 +411,3 @@ void dirandtime(int vinkel)
       }
       servo.detach();
 }
-
