@@ -1,3 +1,15 @@
+/*
+Authur: Sam Jabbar
+Date: 8/8/2019
+
+Pin  function DS3231 pin
+1  GND          PINS 5,6,7,8
+2  N/C
+3  SCL          16
+4  SDA          15
+5  VCC          2
+*/
+
 #include <Servo.h>
 #include <ESP8266WiFi.h>;
 #include <ESP8266HTTPClient.h>;
@@ -6,7 +18,6 @@
 #include "RTClib.h"
 //https://iotguider.in/esp8266-nodemcu/learn-interfacing-ds3231-rtc-module-with-nodemcu/
 RTC_DS3231 rtc;
-
 String cDay = ""; 
 String oldYear = "";
 String oldMonth = "";
@@ -33,13 +44,20 @@ int timeflag = 0;
 static String History[32];
 ESP8266WebServer server(80); // Create a webserver object listens HTTP request on port 80
 
+static String rtcYear;
+static String rtcMonth;
+static String rtcDay;
+static String rtcHour;
+static String rtcMinute;
+static String rtcSecund;
+
 const char* ssid = "ComHemF17542";
 const char* password = "ytkwsqqu";
 
 Servo servo;
 int count = 6; // repeat every 6 hours
 //int tag = 0;
-int ENA = 4;
+int ENA = 10;
 int IN1 = 0;
 void setup() {
   
@@ -57,12 +75,12 @@ void setup() {
   
   if (rtc.lostPower()) 
   {
-    Serial.println("RTC lost power, lets set the time!");
+    Serial.println("RTC lost power, lets set the time!"); 
     // following line sets the RTC to the date & time this sketch was compiled
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     // This line sets the RTC with an explicit date & time, for example to set
     // January 21, 2014 at 3am you would call:
-    rtc.adjust(DateTime(2019, 8, 2, 22, 24, 0));
+    //rtc.adjust(DateTime(2019, 8, 4, 9, 57, 0));
   }
   
   WiFi.begin(ssid, password);
@@ -117,6 +135,13 @@ void setup() {
 }
 void loop() 
 {   
+  DateTime now = rtc.now(); // rtc DS3231 timenow
+  rtcYear = String(now.year());
+  rtcMonth = String(now.month());    
+  rtcDay = String(now.day());
+  rtcHour = String(now.hour());
+  rtcMinute = String(now.minute()); 
+  
   server.handleClient();                     // Listen for HTTP requests
   handleserver();
   String currentYear = "";
@@ -161,12 +186,11 @@ void loop()
     http.end();   //Close connection
     if(payload.length()< 270)
     {
-      DateTime now = rtc.now();
-      currentYear = String(now.year());
-      currentMonth = String(now.month());    
-      currentDay = String(now.day());
-      currentHour = String(now.hour());
-      currentMinute = String(now.minute());
+      currentYear = rtcYear;
+      currentMonth = rtcMonth;    
+      currentDay = rtcDay;
+      currentHour = rtcHour;
+      currentMinute = rtcMinute;
     }
     if(currentYear != oldYear)
     {
@@ -323,7 +347,7 @@ void handleserver()
   HTTPClient http;  //Declare an object of class HTTPClient
   //http.begin("http://188.150.76.88:2222/jsfs.html");  //Specify request destination
   int httpCode = http.GET();  //Send the request
-  server.send(200, "text/html", "<h1><form action=\"/Action\" method=\"POST\"><input type=\"text\" name=\"action\" placeholder=\"Action\"><br><input type=\"submit\" value=\"Send Command\"></form></h1><p>Date: "+ oldYear +"-"+ oldMonth + "-" + oldDay + " Time: " + oldHour + ":" + oldMinute+ "<h1><form action=\"/Counter\" method=\"POST\"><input type=\"text\" name=\"counter\" placeholder=\"Start every N hours \"><input type=\"text\" name=\"Delayv\" placeholder=\"VDir_Defualt = 1500 ms \"><input type=\"text\" name=\"Delayh\" placeholder=\"HDir_Defualt = 1500 ms \"><br><input type=\"submit\" value=\"Send Command\"></form></h1><p> Program will repeat every : "+ count+" Hours </p><p>Next Watering Time is: "+Hour+ ":"+Minute+"</p><p>Delayv is: "+Delayv+"</p><p>Delayh is: "+Delayh+"</p><p>History: "+History[0]+"</p><p>"+History[1]+"</p><p>"+History[2]+"</p><p>"+History[3]+"</p><p>"+History[4]+"</p><p>"+History[5]+"</p><p>"+History[6]+"</p><p>"+History[7]+"</p><p>"+History[8]+"</p><p>"+History[9]+"</p><p>"+History[10]+"</p><p>"+History[11]+"</p><p>"+History[12]+"</p><p>"+History[13]+"</p><p>"+History[14]+"</p><p>"+History[15]+"</p><p>"+History[16]+"</p><p>"+History[17]+"</p><p>"+History[18]+"</p><p>"+History[19]+"</p><p>"+History[20]+"</p><p>"+History[21]+"</p><p>"+History[22]+"</p><p>"+History[23]+"</p><p>"+History[24]+"</p><p>"+History[25]+"</p><p>"+History[26]+"</p><p>"+History[27]+"</p><p>"+History[28]+"</p><p>"+History[29]+"</p><p>"+History[30]+"</p><p>"+History[31]+"</p>");
+  server.send(200, "text/html", "<h1><form action=\"/Action\" method=\"POST\"><input type=\"text\" name=\"action\" placeholder=\"Action\"><br><input type=\"submit\" value=\"Send Command\"></form></h1><p>Date: "+ oldYear +"-"+ oldMonth + "-" + oldDay + " Time: " + oldHour + ":" + oldMinute+ "</p><p>Date RTC DS3231: "+ rtcYear +"-"+ rtcMonth + "-" + rtcDay + " Time: " + rtcHour + ":" + rtcMinute + "</p><h1><form action=\"/Counter\" method=\"POST\"><input type=\"text\" name=\"counter\" placeholder=\"Start every N hours \"><input type=\"text\" name=\"Delayv\" placeholder=\"VDir_Defualt = 1500 ms \"><input type=\"text\" name=\"Delayh\" placeholder=\"HDir_Defualt = 1500 ms \"><br><input type=\"submit\" value=\"Send Command\"></form></h1><p> Program will repeat every : "+ count+" Hours </p><p>Next Watering Time is: "+Hour+ ":"+Minute+"</p><p>Delayv is: "+Delayv+"</p><p>Delayh is: "+Delayh+"</p><p>History: "+History[0]+"</p><p>"+History[1]+"</p><p>"+History[2]+"</p><p>"+History[3]+"</p><p>"+History[4]+"</p><p>"+History[5]+"</p><p>"+History[6]+"</p><p>"+History[7]+"</p><p>"+History[8]+"</p><p>"+History[9]+"</p><p>"+History[10]+"</p><p>"+History[11]+"</p><p>"+History[12]+"</p><p>"+History[13]+"</p><p>"+History[14]+"</p><p>"+History[15]+"</p><p>"+History[16]+"</p><p>"+History[17]+"</p><p>"+History[18]+"</p><p>"+History[19]+"</p><p>"+History[20]+"</p><p>"+History[21]+"</p><p>"+History[22]+"</p><p>"+History[23]+"</p><p>"+History[24]+"</p><p>"+History[25]+"</p><p>"+History[26]+"</p><p>"+History[27]+"</p><p>"+History[28]+"</p><p>"+History[29]+"</p><p>"+History[30]+"</p><p>"+History[31]+"</p>");
 }
 void WateringOn(String Delay)
 {
