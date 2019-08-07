@@ -234,7 +234,14 @@ void loop()
 }
 void handleRoot() 
 {// When URI / is requested, make login Webpage
-  server.send(200, "text/html", "<form action=\"/login\" method=\"POST\"><input type=\"text\" name=\"uname\" placeholder=\"Username\"></br><input type=\"password\" name=\"pass\" placeholder=\"Password\"></br><input type=\"submit\" value=\"Login\"></form>");
+  server.send(200, "text/html", "<!DOCTYPE html>"
+  "<style>h3 {font-size: 1.5cm;}h3 {font-size: 1cm;}p {font-size: 0.5cm;line-height: 1cm;}</style>"
+  "<title>Watering System</title>"
+  "<body style='background-color:coral'>"
+  "<div style='background-color:black;color:white;padding:10px;'>"
+  "<h1><span style='border: 4px solid Tomato'>Login to Wateringsystem</span></h1>"
+  "<form action=\"/login\" method=\"POST\"><input type=\"text\" name=\"uname\" placeholder=\"Username\"></br><input type=\"password\" name=\"pass\" placeholder=\"Password\"></br><input type=\"submit\" value=\"Login\"></form></body>"
+  "<p>&#169 Sam Jabbar</p></div>");
 }
 
 void handleLogin() 
@@ -340,14 +347,66 @@ void handleNotFound(){
    }
 void handleAction()
 {
-  server.send(200, "text/html", "<h1>Action = " +server.arg("action")+"</h1>");
+  server.send(200, "text/html", "<h3>Action = " +server.arg("action")+"</h3>");
 }
 void handleserver()
 {
   HTTPClient http;  //Declare an object of class HTTPClient
   //http.begin("http://188.150.76.88:2222/jsfs.html");  //Specify request destination
   int httpCode = http.GET();  //Send the request
-  server.send(200, "text/html", "<h1><form action=\"/Action\" method=\"POST\"><input type=\"text\" name=\"action\" placeholder=\"Action\"><br><input type=\"submit\" value=\"Send Command\"></form></h1><p>Date: "+ oldYear +"-"+ oldMonth + "-" + oldDay + " Time: " + oldHour + ":" + oldMinute+ "</p><p>Date RTC DS3231: "+ rtcYear +"-"+ rtcMonth + "-" + rtcDay + " Time: " + rtcHour + ":" + rtcMinute + "</p><h1><form action=\"/Counter\" method=\"POST\"><input type=\"text\" name=\"counter\" placeholder=\"Start every N hours \"><input type=\"text\" name=\"Delayv\" placeholder=\"VDir_Defualt = 1500 ms \"><input type=\"text\" name=\"Delayh\" placeholder=\"HDir_Defualt = 1500 ms \"><br><input type=\"submit\" value=\"Send Command\"></form></h1><p> Program will repeat every : "+ count+" Hours </p><p>Next Watering Time is: "+Hour+ ":"+Minute+"</p><p>Delayv is: "+Delayv+"</p><p>Delayh is: "+Delayh+"</p><p>History: "+History[0]+"</p><p>"+History[1]+"</p><p>"+History[2]+"</p><p>"+History[3]+"</p><p>"+History[4]+"</p><p>"+History[5]+"</p><p>"+History[6]+"</p><p>"+History[7]+"</p><p>"+History[8]+"</p><p>"+History[9]+"</p><p>"+History[10]+"</p><p>"+History[11]+"</p><p>"+History[12]+"</p><p>"+History[13]+"</p><p>"+History[14]+"</p><p>"+History[15]+"</p><p>"+History[16]+"</p><p>"+History[17]+"</p><p>"+History[18]+"</p><p>"+History[19]+"</p><p>"+History[20]+"</p><p>"+History[21]+"</p><p>"+History[22]+"</p><p>"+History[23]+"</p><p>"+History[24]+"</p><p>"+History[25]+"</p><p>"+History[26]+"</p><p>"+History[27]+"</p><p>"+History[28]+"</p><p>"+History[29]+"</p><p>"+History[30]+"</p><p>"+History[31]+"</p>");
+  server.send(200, "text/html",
+  "<!DOCTYPE html>"
+  "<style>"
+  "h1 {font-size: 1.75cm;}"
+  "h2 {font-size: 1cm;}"
+  "h3 {font-size: 1cm;}"
+  "p {font-size: 0.5cm;line-height: 1cm;}"
+  "</style>"
+  "<title>Watering System</title>"
+  "<div style='background-color:black;color:white;padding:10px;'>"
+  "<h1><span style='border: 4px solid Tomato'>Welcome to WateringSystem home page</span></h1>"
+  "<body style='background-color: lightblue'>"
+  "<h2><form action=\"/Action\" method=\"POST\"><input type=\"text\" name=\"action\" placeholder=\"Action\"><input type=\"submit\" value=\"Send Command\"></form></h2>"
+  "<p>Date: "+ oldYear +"-"+ oldMonth + "-" + oldDay + " Time: " + oldHour + ":" + oldMinute+ "</p>"
+  "<p>Date RTC DS3231: "+ rtcYear +"-"+ rtcMonth + "-" + rtcDay + " Time: " + rtcHour + ":" + rtcMinute + "</p>"
+  "<h2><form action=\"/Counter\" method=\"POST\"><input type=\"text\" name=\"counter\" placeholder=\"Start every N hours \"><input type=\"text\" name=\"Delayv\" placeholder=\"VDir_Defualt = 1500 ms \"><input type=\"text\" name=\"Delayh\" placeholder=\"HDir_Defualt = 1500 ms \"><input type=\"submit\" value=\"Send Command\"></form></h3>"
+  "<p> Program will repeat every : "+ count+" Hours </p>"
+  "<p>Next Watering Time is: "+Hour+ ":"+Minute+"</p>"
+  "<p>Delayv is: "+Delayv+"</p>"
+  "<p>Delayh is: "+Delayh+"</p>"
+  "<p>History: "+History[0]+"</p>"
+  "<p>"+History[1]+"</p>"
+  "<p>"+History[2]+"</p>"
+  "<p>"+History[3]+"</p>"
+  "<p>"+History[4]+"</p>"
+  "<p>"+History[5]+"</p>"
+  "<p>"+History[6]+"</p>"
+  "<p>"+History[7]+"</p>"
+  "<p>"+History[8]+"</p>"
+  "<p>"+History[9]+"</p>"
+  "<p>"+History[10]+"</p>"
+  "<p>"+History[11]+"</p>"
+  "<p>"+History[12]+"</p>"
+  "<p>"+History[13]+"</p>"
+  "<p>"+History[14]+"</p>"
+  "<p>"+History[15]+"</p>"
+  "<p>"+History[16]+"</p>"
+  "<p>"+History[17]+"</p>"
+  "<p>"+History[18]+"</p>"
+  "<p>"+History[19]+"</p>"
+  "<p>"+History[20]+"</p>"
+  "<p>"+History[21]+"</p>"
+  "<p>"+History[22]+"</p>"
+  "<p>"+History[23]+"</p>"
+  "<p>"+History[24]+"</p>"
+  "<p>"+History[25]+"</p>"
+  "<p>"+History[26]+"</p>"
+  "<p>"+History[27]+"</p>"
+  "<p>"+History[28]+"</p>"
+  "<p>"+History[29]+"</p>"
+  "<p>"+History[30]+"</p>"
+  "<p>"+History[31]+"</p>"
+  "<p>&#169 Sam Jabbar</p></body></div> ");
 }
 void WateringOn(String Delay)
 {
