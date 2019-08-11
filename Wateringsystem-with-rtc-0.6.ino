@@ -77,10 +77,10 @@ void setup() {
   {
     Serial.println("RTC lost power, lets set the time!"); 
     // following line sets the RTC to the date & time this sketch was compiled
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+   // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     // This line sets the RTC with an explicit date & time, for example to set
     // January 21, 2014 at 3am you would call:
-    //rtc.adjust(DateTime(2019, 8, 4, 9, 57, 0));
+    rtc.adjust(DateTime(2019, 8, 7, 11, 52, 0));
   }
   
   WiFi.begin(ssid, password);
@@ -234,14 +234,88 @@ void loop()
 }
 void handleRoot() 
 {// When URI / is requested, make login Webpage
-  server.send(200, "text/html", "<!DOCTYPE html>"
-  "<style>h3 {font-size: 1.5cm;}h3 {font-size: 1cm;}p {font-size: 0.5cm;line-height: 1cm;}</style>"
-  "<title>Watering System</title>"
-  "<body style='background-color:coral'>"
-  "<div style='background-color:black;color:white;padding:10px;'>"
-  "<h1><span style='border: 4px solid Tomato'>Login to Wateringsystem</span></h1>"
-  "<form action=\"/login\" method=\"POST\"><input type=\"text\" name=\"uname\" placeholder=\"Username\"></br><input type=\"password\" name=\"pass\" placeholder=\"Password\"></br><input type=\"submit\" value=\"Login\"></form></body>"
-  "<p>&#169 Sam Jabbar</p></div>");
+  server.send(200, "text/html", 
+"<!DOCTYPE html>"
+"<html lang='en'>"
+"<head>"
+"<title>Watering System</title>"
+"<meta charset='utf-8'>"
+"<meta name='viewport' content='width=device-width, initial-scale=1'>"
+"<style> *{'box-sizing: border-box;'}"
+"body {'font-family: Arial, Helvetica, sans-serif;'}"
+/* Style the header */
+"header {"
+  "background-color: #e3eaa7;"
+  "padding: 30px;"
+  "text-align: center;"
+  "font-size: 40px;"
+  "color: white;"
+"}"
+
+/* Create two columns/boxes that floats next to each other */
+"nav {"
+  "float: left;"
+  "width: 15%;"
+  "height: 410px;" /* only for demonstration, should be removed */
+  "background:#b5e7a0;"
+  "padding: 20px;"
+"}"
+/* Style the list inside the menu */
+"nav ul {"
+  "list-style-type: none;"
+  "padding: 0;"
+"}"
+"article {"
+  "float: right;"
+  "padding: 10px;"
+  "width: 98.6%;"
+  "background-color: #d5e1d0;"
+  "height: 70px;" /* only for demonstration, should be removed */
+"}"
+/* Clear floats after the columns */
+"section:after {"
+  "content: "";"
+  "display: table;"
+  "clear: both;"
+"}"
+/* Style the footer */
+"footer {"
+  "background-color: #86af90;"
+  "padding: 10px;"
+  //"text-align: center;"
+  "height: 430px;"
+  "color: white;"
+"}"
+/* Responsive layout - makes the two columns/boxes stack on top of each other instead of next to each other, on small screens */
+"@media (max-width: 400px) {"
+  "nav, article {"
+    "width: 98.6%;"
+    "height: 70px;"
+  "}"
+"}"
+"</style>"
+"</head>"
+"<body>"
+"<header>"
+  "<h2>Login to Wateringsystem</h2>"
+"</header>"
+"<section>"
+  "<nav>"
+    "<ul>"
+      "<li><a href='#'><form action=\"/login\" method=\"POST\"><input type=\"text\" name=\"uname\" placeholder=\"Username\"></br><input type=\"password\" name=\"pass\" placeholder=\"Password\"></br><input type=\"submit\" value=\"Login\"></form>"
+    "</a></li>"
+    "</ul>"
+  "</nav>"
+  "<article>"
+    "<a>&#169 Sam Jabbar</a>"
+  "</article>"
+"</section>"
+"<footer>"
+  "<p></p>"
+"</footer>"
+"</body>"
+"</html>"
+);
 }
 
 void handleLogin() 
@@ -356,25 +430,96 @@ void handleserver()
   int httpCode = http.GET();  //Send the request
   server.send(200, "text/html",
   "<!DOCTYPE html>"
-  "<style>"
-  "h1 {font-size: 1.75cm;}"
-  "h2 {font-size: 1cm;}"
-  "h3 {font-size: 1cm;}"
-  "p {font-size: 0.5cm;line-height: 1cm;}"
-  "</style>"
-  "<title>Watering System</title>"
-  "<div style='background-color:black;color:white;padding:10px;'>"
-  "<h1><span style='border: 4px solid Tomato'>Welcome to WateringSystem home page</span></h1>"
-  "<body style='background-color: lightblue'>"
-  "<h2><form action=\"/Action\" method=\"POST\"><input type=\"text\" name=\"action\" placeholder=\"Action\"><input type=\"submit\" value=\"Send Command\"></form></h2>"
-  "<p>Date: "+ oldYear +"-"+ oldMonth + "-" + oldDay + " Time: " + oldHour + ":" + oldMinute+ "</p>"
-  "<p>Date RTC DS3231: "+ rtcYear +"-"+ rtcMonth + "-" + rtcDay + " Time: " + rtcHour + ":" + rtcMinute + "</p>"
-  "<h2><form action=\"/Counter\" method=\"POST\"><input type=\"text\" name=\"counter\" placeholder=\"Start every N hours \"><input type=\"text\" name=\"Delayv\" placeholder=\"VDir_Defualt = 1500 ms \"><input type=\"text\" name=\"Delayh\" placeholder=\"HDir_Defualt = 1500 ms \"><input type=\"submit\" value=\"Send Command\"></form></h3>"
-  "<p> Program will repeat every : "+ count+" Hours </p>"
-  "<p>Next Watering Time is: "+Hour+ ":"+Minute+"</p>"
-  "<p>Delayv is: "+Delayv+"</p>"
-  "<p>Delayh is: "+Delayh+"</p>"
-  "<p>History: "+History[0]+"</p>"
+"<html lang='en'>"
+"<head>"
+"<title>Watering System</title>"
+"<meta charset='utf-8'>"
+"<meta name='viewport' content='width=device-width, initial-scale=1'>"
+"<style> *{'box-sizing: border-box;'}"
+"body {'font-family: Arial, Helvetica, sans-serif;'}"
+/* Style the header */
+"header {"
+  "background-color: #e3eaa7;"
+  "padding: 30px;"
+  "text-align: center;"
+  "font-size: 40px;"
+  "color: white;"
+"}"
+
+/* Create two columns/boxes that floats next to each other */
+"nav {"
+  "float: left;"
+  "width: 20%;"
+  "height: 410px;" /* only for demonstration, should be removed */
+  "background:#b5e7a0;"
+  "padding: 20px;"
+"}"
+/* Style the list inside the menu */
+"nav ul {"
+  "list-style-type: none;"
+  "padding: 0;"
+"}"
+"article {"
+  "float: right;"
+  "padding: 10px;"
+  "width: 98.6%;"
+  "background-color: #d5e1d0;"
+  "height: 70px;" /* only for demonstration, should be removed */
+"}"
+/* Clear floats after the columns */
+"section:after {"
+  "content: "";"
+  "display: table;"
+  "clear: both;"
+"}"
+/* Style the footer */
+"footer {"
+  "background-color: #86af90;"
+  "padding: 10px;"
+  //"text-align: center;"
+  "height: 430px;"
+  "color: white;"
+"}"
+/* Responsive layout - makes the two columns/boxes stack on top of each other instead of next to each other, on small screens */
+"@media (max-width: 400px) {"
+  "nav, article {"
+    "width: 98.6%;"
+    "height: 70px;"
+  "}"
+"}"
+"</style>"
+"</head>"
+"<body>"
+"<header>"
+  "<h2>Welcome to WateringSystem home page</h2>"
+"</header>"
+"<section>"
+  "<nav>"
+    "<ul>"
+      "<li><h2><form action=\"/Action\" method=\"POST\"><input type=\"text\" name=\"action\" placeholder=\"Action\"><input type=\"submit\" value=\"Send Command\"></form></h2></li>"
+    "</ul>"
+    "<ul>"
+      "<li><h2> <form action=\"/Counter\" method=\"POST\"><input type=\"text\" name=\"counter\" placeholder=\"Start every N hours \"><input type=\"text\" name=\"Delayv\" placeholder=\"VDir_Defualt = 1500 ms \"><input type=\"text\" name=\"Delayh\" placeholder=\"HDir_Defualt = 1500 ms \"><input type=\"submit\" value=\"Send Command\"></form></h2></li>"
+    "</ul>"
+    "<ul>"
+      "<li>Date: "+ oldYear +"-"+ oldMonth + "-" + oldDay + " Time: " + oldHour + ":" + oldMinute+ "</li>"
+      "<li>Date: "+ rtcYear +"-"+ rtcMonth + "-" + rtcDay + " Time: " + rtcHour + ":" + rtcMinute+ "</li>"
+    "</ul>"
+    "<ul>"
+      "<li>Program will repeat every : "+ count+" Hours</li>"
+      "<li>Next Watering Time is: "+Hour+ ":"+Minute+"</li>"
+    "</ul>"
+    "<ul>"
+      "<li>Delayv is: "+Delayv+"</li>"
+      "<li>Delayh is: "+Delayh+"</li>"
+    "</ul>"
+  "</nav>"
+  "<article>"
+    "<a>&#169 Sam Jabbar</a>"
+  "</article>"
+"</section>"
+"<footer>"
+  "<h2>History:</h2>"
   "<p>"+History[1]+"</p>"
   "<p>"+History[2]+"</p>"
   "<p>"+History[3]+"</p>"
@@ -406,7 +551,11 @@ void handleserver()
   "<p>"+History[29]+"</p>"
   "<p>"+History[30]+"</p>"
   "<p>"+History[31]+"</p>"
-  "<p>&#169 Sam Jabbar</p></body></div> ");
+"</footer>"
+"</body>"
+"</html>"
+  "<title>Watering System</title>"
+  );
 }
 void WateringOn(String Delay)
 {
