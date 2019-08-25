@@ -18,6 +18,9 @@ Pin  function DS3231 pin
 #include "RTClib.h"
 //https://iotguider.in/esp8266-nodemcu/learn-interfacing-ds3231-rtc-module-with-nodemcu/
 RTC_DS3231 rtc;
+// Set to false to display time in 12 hour format, or true to use 24 hour:
+#define TIME_24_HOUR      false
+
 String cDay = ""; 
 String oldYear = "";
 String oldMonth = "";
@@ -29,8 +32,8 @@ String Hour = "06";
 String Minute = "30";
 
 String Direction = "vi";
-String Delayv = "1500";
-String Delayh = "1500";
+String Delayv = "0";
+String Delayh = "0";
 String newHour = "06";
 String newMinute = "30";
 int angle = 0;
@@ -41,7 +44,7 @@ int a = 0;
 int b = 0;
 int limit = 0;
 int timeflag = 0;
-static String History[32];
+String History[32];
 ESP8266WebServer server(80); // Create a webserver object listens HTTP request on port 80
 
 static String rtcYear;
@@ -80,7 +83,7 @@ void setup() {
    // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     // This line sets the RTC with an explicit date & time, for example to set
     // January 21, 2014 at 3am you would call:
-    rtc.adjust(DateTime(2019, 8, 7, 11, 52, 0));
+    rtc.adjust(DateTime(2019, 8, 11, 15, 51, 0));
   }
   
   WiFi.begin(ssid, password);
@@ -233,7 +236,7 @@ void loop()
   }
 }
 void handleRoot() 
-{// When URI / is requested, make login Webpage
+{
   server.send(200, "text/html", 
 "<!DOCTYPE html>"
 "<html lang='en'>"
@@ -311,7 +314,73 @@ void handleRoot()
   "</article>"
 "</section>"
 "<footer>"
-  "<p></p>"
+
+"<style>"
+"table {"
+  "border-collapse: collapse;"
+  "width: 100%;"
+"}"
+ "td {"
+  "text-align: left;"
+  "padding: 12px;"
+"}"
+"</style>"
+
+"<div style=\"overflow-x:auto;\">"
+"<table id=\"myTable\">"
+  "<tr>"
+    "<td>"+History[1]+"</td>"
+    "<td>"+History[11]+"</td>"
+    "<td>"+History[21]+"</td>"
+    "<td>"+History[31]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[2]+"</td>"
+    "<td>"+History[12]+"</td>"
+    "<td>"+History[22]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[3]+"</td>"
+    "<td>"+History[13]+"</td>"
+    "<td>"+History[23]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[4]+"</td>"
+    "<td>"+History[14]+"</td>"
+    "<td>"+History[24]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[5]+"</td>"
+    "<td>"+History[15]+"</td>"
+    "<td>"+History[25]+"</td>"
+  "</tr>"
+    "<tr>"
+    "<td>"+History[6]+"</td>"
+    "<td>"+History[16]+"</td>"
+    "<td>"+History[26]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[7]+"</td>"
+    "<td>"+History[17]+"</td>"
+    "<td>"+History[27]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[8]+"</td>"
+    "<td>"+History[18]+"</td>"
+    "<td>"+History[28]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[9]+"</td>"
+    "<td>"+History[19]+"</td>"
+    "<td>"+History[29]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[10]+"</td>"
+    "<td>"+History[20]+"</td>"
+    "<td>"+History[30]+"</td>"
+  "</tr>"
+"</table>"
+"</div>"
 "</footer>"
 "</body>"
 "</html>"
@@ -426,7 +495,6 @@ void handleAction()
 void handleserver()
 {
   HTTPClient http;  //Declare an object of class HTTPClient
-  //http.begin("http://188.150.76.88:2222/jsfs.html");  //Specify request destination
   int httpCode = http.GET();  //Send the request
   server.send(200, "text/html",
   "<!DOCTYPE html>"
@@ -519,38 +587,72 @@ void handleserver()
   "</article>"
 "</section>"
 "<footer>"
-  "<h2>History:</h2>"
-  "<p>"+History[1]+"</p>"
-  "<p>"+History[2]+"</p>"
-  "<p>"+History[3]+"</p>"
-  "<p>"+History[4]+"</p>"
-  "<p>"+History[5]+"</p>"
-  "<p>"+History[6]+"</p>"
-  "<p>"+History[7]+"</p>"
-  "<p>"+History[8]+"</p>"
-  "<p>"+History[9]+"</p>"
-  "<p>"+History[10]+"</p>"
-  "<p>"+History[11]+"</p>"
-  "<p>"+History[12]+"</p>"
-  "<p>"+History[13]+"</p>"
-  "<p>"+History[14]+"</p>"
-  "<p>"+History[15]+"</p>"
-  "<p>"+History[16]+"</p>"
-  "<p>"+History[17]+"</p>"
-  "<p>"+History[18]+"</p>"
-  "<p>"+History[19]+"</p>"
-  "<p>"+History[20]+"</p>"
-  "<p>"+History[21]+"</p>"
-  "<p>"+History[22]+"</p>"
-  "<p>"+History[23]+"</p>"
-  "<p>"+History[24]+"</p>"
-  "<p>"+History[25]+"</p>"
-  "<p>"+History[26]+"</p>"
-  "<p>"+History[27]+"</p>"
-  "<p>"+History[28]+"</p>"
-  "<p>"+History[29]+"</p>"
-  "<p>"+History[30]+"</p>"
-  "<p>"+History[31]+"</p>"
+"<style>"
+"table {"
+  "border-collapse: collapse;"
+  "width: 100%;"
+"}"
+ "td {"
+  "text-align: left;"
+  "padding: 12px;"
+"}"
+"</style>"
+
+"<div style=\"overflow-x:auto;\">"
+"<table id=\"myTable\">"
+  "<tr>"
+    "<td>"+History[1]+"</td>"
+    "<td>"+History[11]+"</td>"
+    "<td>"+History[21]+"</td>"
+    "<td>"+History[31]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[2]+"</td>"
+    "<td>"+History[12]+"</td>"
+    "<td>"+History[22]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[3]+"</td>"
+    "<td>"+History[13]+"</td>"
+    "<td>"+History[23]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[4]+"</td>"
+    "<td>"+History[14]+"</td>"
+    "<td>"+History[24]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[5]+"</td>"
+    "<td>"+History[15]+"</td>"
+    "<td>"+History[25]+"</td>"
+  "</tr>"
+    "<tr>"
+    "<td>"+History[6]+"</td>"
+    "<td>"+History[16]+"</td>"
+    "<td>"+History[26]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[7]+"</td>"
+    "<td>"+History[17]+"</td>"
+    "<td>"+History[27]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[8]+"</td>"
+    "<td>"+History[18]+"</td>"
+    "<td>"+History[28]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[9]+"</td>"
+    "<td>"+History[19]+"</td>"
+    "<td>"+History[29]+"</td>"
+  "</tr>"
+   "<tr>"
+    "<td>"+History[10]+"</td>"
+    "<td>"+History[20]+"</td>"
+    "<td>"+History[30]+"</td>"
+  "</tr>"
+"</table>"
+"</div>"
 "</footer>"
 "</body>"
 "</html>"
@@ -603,7 +705,7 @@ void ShowHistory()
     }
   }
   History[oldDay.toInt()] = History[oldDay.toInt()]+"\n"+oldMonth+"-"+oldDay+"-"+oldHour +":"+ newMinute + "\n";
-  handleserver();
+  //handleserver();
 }
 void dirandtime(int vinkel)
 {
