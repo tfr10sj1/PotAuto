@@ -36,15 +36,16 @@ String Delayv = "0";
 String Delayh = "0";
 String newHour = "06";
 String newMinute = "30";
-int angle = 0;
-int MAX_angle = 105;
-int MIN_angle = 9;
-int MID_angle = 32;
-int a = 0;
-int b = 0;
-int limit = 0;
+//int angle = 0;
+//int MAX_angle = 105;
+//int MIN_angle = 9;
+//int MID_angle = 32;
+//int a = 0;
+//int b = 0;
+//int limit = 0;
 int timeflag = 0;
 String History[32];
+static int  vin = 0;
 ESP8266WebServer server(80); // Create a webserver object listens HTTP request on port 80
 
 static String rtcYear;
@@ -59,17 +60,30 @@ const char* password = "ytkwsqqu";
 
 Servo servo;
 int count = 6; // repeat every 6 hours
-//int tag = 0;
 int ENA = 10;
 int IN1 = 0;
+
+
+
+
+
 void setup() {
+  // pump
+  pinMode(ENA, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  
+  // servo 
+  servo.attach(2); //D4
+  servo.write(0);
+ // delay(100);
+ 
   
   #ifndef ESP8266
   while (!Serial); // for Leonardo/Micro/Zero
   #endif
 
   Serial.begin(115200);
-  
+
   if (! rtc.begin()) 
   {
     Serial.println("Couldn't find RTC");
@@ -78,18 +92,16 @@ void setup() {
   
   if (rtc.lostPower()) 
   {
-    Serial.println("RTC lost power, lets set the time!"); 
+    //Serial.println("RTC lost power, lets set the time!"); 
     // following line sets the RTC to the date & time this sketch was compiled
-   // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     // This line sets the RTC with an explicit date & time, for example to set
     // January 21, 2014 at 3am you would call:
-    rtc.adjust(DateTime(2019, 8, 25, 12, 28, 0));
+    //rtc.adjust(DateTime(2019, 8, 26, 9, 37, 0));
   }
   
   WiFi.begin(ssid, password);
   // set all the motor control pins to outputs
-  pinMode(ENA, OUTPUT);
-  pinMode(IN1, OUTPUT);
   while (WiFi.status() != WL_CONNECTED) 
     {
       delay(500);
@@ -103,7 +115,6 @@ void setup() {
     server.onNotFound(handleNotFound);           // call function "handleNotFound" when unknown URI requested
   
     server.begin();                            // start the server
-    //Serial.println("HTTP server started");
     HTTPClient http;  //Declare an object of class HTTPClient
     http.begin("http://worldclockapi.com/api/jsonp/cet/now?callback=mycallback");  //Specify request destination
     int httpCode = http.GET();  //Send the request
@@ -222,11 +233,11 @@ void loop()
   {
     //MovingOn(0);
     //WateringOn(Delayh);
-    //MovingOn(180);
+    //MovingOn(80);
     WateringOn(Delayv);
     NextTime();
     timeflag = 1;
-    Serial.println("History: ");
+    //Serial.println("History: ");
     ShowHistory();
     delay(600);    //Send a request every 30 seconds
   } 
@@ -234,6 +245,7 @@ void loop()
   {
     timeflag = 0;
   }
+  servo.detach();
 }
 void handleRoot() 
 {
@@ -296,7 +308,11 @@ void handleRoot()
     "height: 70px;"
   "}"
 "}"
-"</style>"
+"* {"
+  "margin: 0;"
+  "padding: 0;"
+  "box-sizing: border-box;"
+"}"
 "</head>"
 "<body>"
 "<header>"
@@ -407,65 +423,24 @@ void handleNotFound(){
     {
       WateringOn(Delayv);
     }
-  if(server.arg("action") == "Bl" || server.arg("action") == "bl" )
+  if(server.arg("action") == "B" || server.arg("action") == "b" )
     {
-      dirandtime(80);
-    }
-  if(server.arg("action") == "VI" || server.arg("action") == "vi" )
-    {
-      dirandtime(-180);
-    }
-  if(server.arg("action") == "RO" || server.arg("action") == "ro" )
-    {
-      dirandtime(60);
-    }
-  if (server.arg("action")== "tt")
-  {  
-    servo.attach(15); 
-          // attach the signal pin of servo to pin9 of arduino
-    for(angle = 13; angle < MAX_angle; angle += 1)    // command to move from 0 degrees to 180 degrees 
-    {                                 
-      servo.write(angle);                 //command to rotate the servo to the specified angle
-      delay(100);                
-    } 
-    servo.detach();
-    delay(1500);
-    //Serial.println(angle);
-  }
-  if(server.arg("action")== "-tt"){
-    servo.attach(15); 
-    for(angle ; angle >= MIN_angle; angle -= 1)     // command to move from 180 degrees to 0 degrees 
-    {                                
-      servo.write(angle);              //command to rotate the servo to the specified angle
-      delay(100);                        
-    } 
-      delay(1500);
+      servo.attach(2); 
+      servo.write(servo.read()+45);                 //command to rotate the servo to the specified angle
+      delay(500);
+      Serial.println(servo.read());
       servo.detach();
-      //Serial.println(angle);
-    } 
-  if(server.arg("action")== "t")
-    {
-      servo.attach(15); 
-      if(angle > MID_angle)
-      {
-        for(angle ; angle >= MID_angle; angle -= 1)     // command to move from 180 degrees to 0 degrees 
-        {                                
-          servo.write(angle);              //command to rotate the servo to the specified angle
-          delay(100);                        
-        } 
-      }
-      else
-       {
-          for(angle ; angle <= MID_angle; angle += 1)     // command to move from 180 degrees to 0 degrees 
-        {                                
-          servo.write(angle);              //command to rotate the servo to the specified angle
-          delay(100);                        
-        }  
-       }
-        delay(1500);
+      
+    }
+  if(server.arg("action") == "-B" || server.arg("action") == "-b" )
+    {   
+        servo.attach(2); 
+        servo.write(servo.read()-50);                 //command to rotate the servo to the specified angle
+        delay(500);
+        Serial.println(servo.read());
         servo.detach();
-      //  Serial.println(angle);
-    } 
+        
+    }
    if(!server.hasArg("AutomaticWatering")&& server.arg("hour") != "" && server.arg("minute")!= "")
     {
       Hour = server.arg("hour");
@@ -664,14 +639,15 @@ void WateringOn(String Delay)
   digitalWrite(IN1, HIGH);
   digitalWrite(ENA, HIGH);
   delay(Delay.toInt());
-  analogWrite(ENA, 0);
-  delay(3000);
+  digitalWrite(IN1, LOW);
+  digitalWrite(ENA, LOW);
+  //delay(3000);
 }
 void MovingOn(int angle)
 {
-  servo.attach(15);
-  servo.write(angle);
-  delay(1500);
+  servo.attach(2); 
+  servo.write(servo.read()+angle);                 //command to rotate the servo to the specified angle
+  delay(100);
   servo.detach();
 }
 void NextTime()
@@ -706,42 +682,4 @@ void ShowHistory()
   }
   History[oldDay.toInt()] = History[oldDay.toInt()]+"\n"+oldYear+"/"+oldMonth+"/"+oldDay+"-"+oldHour +":"+ newMinute + "\n";
   handleserver();
-}
-void dirandtime(int vinkel)
-{
-  servo.attach(15);
-  Serial.println("Direction: ");
-  Serial.print(Direction);  
- // delay(5000);
-  servo.write(0);
- // delay(9000);
-  servo.write(vinkel);
-  Serial.println("vinkel: ");
-  Serial.print(vinkel);  
-  switch (vinkel) 
-      {
-        case -180:     
-//          delay(6000);
-//          Direction = "vi";
-//          Serial.println("Direction: ");
-//          Serial.print(Direction);
-
-          servo.detach();
-          break;
-        case 80:
-          delay(5000);  
-          Direction = "bl";
-          Serial.println("Direction: ");
-          Serial.print(Direction); 
-          servo.detach();
-          break;
-        case 60:
-          delay(3000);
-          Direction = "ro";
-          Serial.println("Direction: ");
-          Serial.print(Direction);   
-          servo.detach();
-          break;
-      }
-      servo.detach();
 }
