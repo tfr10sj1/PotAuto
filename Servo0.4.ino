@@ -15,8 +15,8 @@ String Minute = "30";
 String Direction = "vi";
 String Delayv = "1500";
 String Delayh = "1500";
-String savedHour = "06";
-String savedMinute = "30";
+String newHour = "06";
+String newMinute = "30";
 int angle = 0;
 int MAX_angle = 105;
 int MIN_angle = 9;
@@ -144,7 +144,7 @@ void loop()
     }
     http.end();   //Close connection
   }
-  if(savedHour == currentHour && savedMinute == currentMinute)
+  if(newHour == currentHour && newMinute == currentMinute)
   {
    // MovingOn(0);
     WateringOn(Delayh);
@@ -246,8 +246,8 @@ void handleNotFound(){
    if(!server.hasArg("Counter") && server.arg("counter")!= "")
     {
       count = server.arg("counter").toInt();
-      savedHour = oldHour;
-      savedMinute = oldMinute;
+      newHour = oldHour;
+      newMinute = oldMinute;
       NextTime();
     }
     if(!server.hasArg("Counter") && server.arg("Delayv")!= "")
@@ -285,25 +285,26 @@ void MovingOn(int angle)
 }
 void NextTime()
 {
- if (24 - savedHour.toInt() >= count)
- {
-  savedHour = oldHour.toInt() + count;
-  Hour = savedHour;
-  Minute = savedMinute;
- }
- else
- {
-  count -= (24 - savedHour.toInt());
-  savedHour = count;
-  Hour = savedHour;
-  Minute = savedMinute;
- }
+  int tot = count + oldHour.toInt();
+  if(tot <= 24)
+  {
+    newHour = (String)tot;
+    if(newHour == "24"){ newHour = "00" ;}
+    Hour = newHour;
+    Minute = newMinute;
+  }
+  else
+  {
+   newHour = (String)(tot - 24);
+   Hour = newHour;
+   Minute = newMinute;
+  }
  Serial.print("count: ");
  Serial.println(count);
- Serial.print("savedHour: ");
- Serial.println(savedHour);
- Serial.print("savedMinute: ");
- Serial.println(savedMinute);
+ Serial.print("newHour: ");
+ Serial.println(newHour);
+ Serial.print("newMinute: ");
+ Serial.println(newMinute);
 }
 
 void dirandtime(int vinkel)
