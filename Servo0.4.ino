@@ -146,10 +146,10 @@ void loop()
   }
   if(newHour == currentHour && newMinute == currentMinute)
   {
-    MovingOn(0);
+   // MovingOn(0);
     WateringOn(Delayh);
-    MovingOn(180);
-    WateringOn(Delayv);
+   // MovingOn(180);
+   // WateringOn(Delayv);
     NextTime();
     delay(60000);    //Send a request every 30 seconds
   } 
@@ -305,7 +305,6 @@ void NextTime()
  Serial.println(newHour);
  Serial.print("newMinute: ");
  Serial.println(newMinute);
- 
 }
 
 void dirandtime(int vinkel)
