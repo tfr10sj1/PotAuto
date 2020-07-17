@@ -1,6 +1,5 @@
 
 #include <FS.h>  
-/* Comment this out to disable prints and save space */
 #define BLYNK_PRINT Serial
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
@@ -16,12 +15,12 @@
 #include <Ticker.h>
 Ticker ticker;
 
-#include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
+#include <ArduinoJson.h>
 
-char blynk_token[34] = "vqmXhqzPZVclHkQwJRUWHVJPQzZhDe8Z"; // sam_simsim@hotmail.com  tfr10sj1
+char blynk_token[34] = "----------------"; // sam_simsim@
 
 bool shouldSaveConfig = false; //flag for saving data
-
+// tfr10sj1@
 int motorPin = 14;
 int static timeflag = 0;
 float static water_level = 2000;
