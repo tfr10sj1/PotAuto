@@ -55,13 +55,8 @@ void clockDisplay(){
   // Send Info to the App
   Blynk.virtualWrite(V3, currentDate);
 }
-void WateringOn(int Delay){
+void enable(int Delay){ // runs the pump depending on Delay time
   digitalWrite(motorPin, HIGH);
-  delay(Delay);
-}
-
-void RunWateringOn(){
-  WateringOn(amountV4);
 }
 
 void Wateringoff(){
@@ -101,12 +96,15 @@ void NextTime(){
 
 void runAuto(){ 
   if (newHour == hour() && newMinute == minute() && newSecond == second() && timeflag == 0){
-    WateringOn(amountV4);
+    //WateringOn(amountV4);
     if(amountV4/2 != 1){
-      delay((amountV4/2)*1000);
+     timer.enable((amountV4/2)*1000);
+     Wateringoff();
       }
     else{
-      delay(1000);
+      //delay(1000);
+      timer.enable(1000);
+      Wateringoff();
       }
     if(water_level < 100){
       Blynk.notify("The water LEVEL is LOW. Fill your Watertank and Restart the Auto-Pot!");
@@ -119,7 +117,8 @@ void runAuto(){
       NextTime();
       Serial.println(String(newSecond) + ":"+String(second()));
     }
-    delay(2000);    //Send a request every 30 seconds
+   // delay(2000);    //Send a request every 30 seconds
+    
   }
   else {
     timeflag = 0; 
@@ -142,7 +141,7 @@ BLYNK_WRITE(V2) {
   Blynk.virtualWrite(V1, AutoTime);
   // Send Info to the App
   Blynk.virtualWrite(V3, AutoAmount);
-  runAuto();
+  timer.setInterval(2000L, runAuto);
     }
   }
 
@@ -340,6 +339,8 @@ void setup()
   NextTime();
   clockDisplay();
   Blynk.virtualWrite(V6, water_level);
+  Blynk.virtualWrite(V0, 6);
+  Blynk.virtualWrite(V4, 4);
   
 }
 
@@ -348,5 +349,4 @@ void loop()
   Blynk.run();
   timer.run();
   ArduinoOTA.handle();
-  runAuto();
 }
