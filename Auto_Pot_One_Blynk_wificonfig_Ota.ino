@@ -31,7 +31,7 @@ int static newSecond = 0;
 int static newDay = day();
 BlynkTimer timer;
 WidgetRTC rtc;
-WidgetLED led10(10);
+WidgetLED led10(V10);
 
 // numeric input Time and Amount
 double amountV4 = 2 ;
@@ -40,8 +40,16 @@ long timeV0 = 6 ;
 void clockDisplay(){
   // You can call hour(), minute(), ... at any time
   // Please see Time library examples for details
-  String currentTime = "Next: "+String(newHour) + ":" + newMinute + ":" + newSecond;
-  String currentDate = String(newDay) + " " + month() + " " + year();
+  String currentTime = "";
+  String currentDate = "";
+  if(newHour == 0 && newMinute == 0 && newSecond == 0 && newDay == 0){
+    currentTime = "Next: "+ String(hour()) + ":" + String(minute()) + ":" + String(second());
+    currentDate = String(day()) + " " + month() + " " + year();
+  }
+  else{
+    currentTime = "Next: "+String(newHour) + ":" + newMinute + ":" + newSecond;
+    currentDate = String(newDay) + " " + month() + " " + year();
+  }
   // Send time to the App
   Blynk.virtualWrite(V1, currentTime);
   // Send Info to the App
@@ -91,15 +99,18 @@ void NextTime(){
   } 
 }
 
-void runAuto(){
+void runAuto(){ 
   if (newHour == hour() && newMinute == minute() && newSecond == second() && timeflag == 0){
     WateringOn(amountV4);
     if(amountV4/2 != 1){
       delay((amountV4/2)*1000);
       }
-      else{
-        delay(1000);
+    else{
+      delay(1000);
       }
+    if(water_level < 100){
+      Blynk.notify("The water LEVEL is LOW. Fill your Watertank and Restart the Auto-Pot!");
+    }
     Wateringoff();
     water_level -= amountV4;
     Blynk.virtualWrite(V6, water_level);
@@ -324,7 +335,10 @@ void setup()
   led10.on();
   setSyncInterval(10 * 60); // Sync interval in seconds (10 minutes)
   // Display digital clock every 10 seconds
+  
   timer.setInterval(5000L, clockDisplay);
+  NextTime();
+  clockDisplay();
   Blynk.virtualWrite(V6, water_level);
   
 }
