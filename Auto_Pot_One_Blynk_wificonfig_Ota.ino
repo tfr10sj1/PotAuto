@@ -1,5 +1,5 @@
 
-#include <FS.h>  
+#include <FS.h>
 /* Comment this out to disable prints and save space */
 #define BLYNK_PRINT Serial
 #include <ESP8266WiFi.h>
@@ -18,36 +18,35 @@ Ticker ticker;
 
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 
-char blynk_token[34] = "vqmXhqzPZVclHkQwJRUWHVJPQzZhDe8Z"; // sam_simsim@hotmail.com  tfr10sj1
+char blynk_token[34] = "vqmXhqzPZVclHkQwJRUWHVJPQzZhDe8Z"; // sam_si..tfr10sj1
 
 bool shouldSaveConfig = false; //flag for saving data
+int enA = 15; //enable pin in l298n
+int motorPin = 14; // for mini D1 = 5
 
-int motorPin = 14;
 int static timeflag = 0;
 float static water_level = 2000;
 int static newHour = 0;
 int static newMinute = 0;
 int static newSecond = 0;
 int static newDay = day();
+// numeric input Time and Amount
+double static  amountV4 = 4 ;
+long static hourV0 = 6 ;
+long static minV7 = 0;
+
 BlynkTimer timer;
 WidgetRTC rtc;
-WidgetLED led10(V10);
 
-// numeric input Time and Amount
-double amountV4 = 2 ;
-long timeV0 = 6 ;
-// Digital clock display of the time
-void clockDisplay(){
-  // You can call hour(), minute(), ... at any time
-  // Please see Time library examples for details
+void clockDisplay() {
   String currentTime = "";
   String currentDate = "";
-  if(newHour == 0 && newMinute == 0 && newSecond == 0 && newDay == 0){
-    currentTime = "Next: "+ String(hour()) + ":" + String(minute()) + ":" + String(second());
+  if (newHour == 0 && newMinute == 0 && newSecond == 0 && newDay == 0) {
+    currentTime = "Next: " + String(hour()) + ":" + String(minute()) + ":" + String(second());
     currentDate = String(day()) + " " + month() + " " + year();
   }
-  else{
-    currentTime = "Next: "+String(newHour) + ":" + newMinute + ":" + newSecond;
+  else {
+    currentTime = "Next: " + String(newHour) + ":" + newMinute + ":" + newSecond;
     currentDate = String(newDay) + " " + month() + " " + year();
   }
   // Send time to the App
@@ -55,111 +54,131 @@ void clockDisplay(){
   // Send Info to the App
   Blynk.virtualWrite(V3, currentDate);
 }
-void enable(int Delay){ // runs the pump depending on Delay time
+void WateringOn() {
+  digitalWrite(enA, HIGH); // Send PWM signal to L298N Enable pin
   digitalWrite(motorPin, HIGH);
 }
 
-void Wateringoff(){
+void Wateringoff() {
+  digitalWrite(enA, LOW); // Send PWM signal to L298N Enable pin
   digitalWrite(motorPin, LOW);
 }
 
-void NextTime(){
-  int tot = timeV0 + hour();
-  if (tot <= 24)
-  {
-    newHour = tot;
-    if (tot == 24) {
-      newHour = 0;
-      if(minute() > 0){
-        newDay = day() + 1;
+void NextTime() {
+  long totm = minV7 + minute();
+  if (totm <= 60){
+    newMinute = totm;
+    if (totm == 60) {
+      newMinute = 0;
+      if (second() > 0) {
+        newHour = hour() + 1;
       }
-      newMinute = minute();
-      newSecond = second();
     }
-    else{
-    newMinute = minute();
-    newSecond = second();
-    newDay = day();
+    else {
+      newHour = hour();
+      newSecond = second();
     }
   }
   else
   {
-    newHour = (tot - 24);
+    newMinute = (totm - 60);
+    if (newMinute != 60) {
+      newMinute = newMinute;
+    }
+    newSecond = second();
+    newHour = hour() +1;
+    Serial.println("Inside min Nexttime is: " + String(newMinute));
+  }
+  
+  long toth = hourV0 + hour();
+  if (toth <= 24)
+  {
+    newHour = toth;
+    if (toth == 24) {
+      newHour = 0;
+      if (minute() > 0) {
+        newDay = day() + 1;
+      }
+      newSecond = second();
+    }
+    else {
+      newSecond = second();
+      newDay = day();
+    }
+  }
+  else
+  {
+    newHour = (toth - 24);
     if (newHour != 24) {
       newHour = (newHour);
     }
-    newMinute = minute();
     newSecond = second();
-    newDay = day() + 1; 
-  } 
+    newDay = day() + 1;
+  }
 }
 
-void runAuto(){ 
-  if (newHour == hour() && newMinute == minute() && newSecond == second() && timeflag == 0){
-    //WateringOn(amountV4);
-    if(amountV4/2 != 1){
-     timer.enable((amountV4/2)*1000);
-     Wateringoff();
-      }
-    else{
-      //delay(1000);
-      timer.enable(1000);
-      Wateringoff();
-      }
-    if(water_level < 100){
-      Blynk.notify("The water LEVEL is LOW. Fill your Watertank and Restart the Auto-Pot!");
+void runAuto() {
+  if (newHour == hour() && newMinute == minute() && newSecond == second() && timeflag == 0) {
+    Serial.println("efter if runAuto");
+    WateringOn();
+    if (amountV4 / 2 != 1) {
+      timer.setTimeout((amountV4 / 2) * 1000, Wateringoff); // stop Watwatering after (amountV4/2)*1000 ms
     }
-    Wateringoff();
+    else {
+      timer.setTimeout(1000, Wateringoff);
+    }
     water_level -= amountV4;
     Blynk.virtualWrite(V6, water_level);
-    timeflag = 1;
-    if(newSecond+1 != second()){
-      NextTime();
-      Serial.println(String(newSecond) + ":"+String(second()));
+
+    if (water_level < 100) {
+      Blynk.notify("The water LEVEL is to LOW. Fill your Watertank and Restart the Auto-Pot!");
     }
-   // delay(2000);    //Send a request every 30 seconds
-    
+    timeflag = 1;
+    if (newSecond + 1 != second()) {
+      NextTime();
+      Serial.println("NextTime runAuto");
+    }
+
   }
   else {
-    timeflag = 0; 
+    timeflag = 0;
   }
-  } 
-   
+  Serial.println("slutet runAuto");
+}
+
 BLYNK_WRITE(V0) {
-  timeV0 = param[0];
+  hourV0 = param[0];
+}
+BLYNK_WRITE(V7) {
+  minV7 = param[0];
 }
 BLYNK_WRITE(V4) {
   amountV4 = param[0].asDouble();
 }
 
 BLYNK_WRITE(V2) {
-  if(timeV0 != 0 || amountV4 != 0){
-  NextTime();
-  String AutoTime = "Autotime: " + String(timeV0);
-  String AutoAmount = "AutoAmuont: " + String(amountV4);
-  // Send time to the App
-  Blynk.virtualWrite(V1, AutoTime);
-  // Send Info to the App
-  Blynk.virtualWrite(V3, AutoAmount);
-  timer.setInterval(2000L, runAuto);
-    }
+  if (hourV0 != 0 || minV7 != 0 || amountV4 != 0) {
+    String AutoTime = "Autotime: " + String(hourV0) + ":" + String(minV7);
+    String AutoAmount = "AutoAmuont: " + String(amountV4);
+    // Send time to the App
+    Blynk.virtualWrite(V1, AutoTime);
+    // Send Info to the App
+    Blynk.virtualWrite(V3, AutoAmount);
+    NextTime();
+    runAuto();
+    //timer.setInterval(2000L, runAuto);
   }
-
-BLYNK_WRITE(V5) {
-  Serial.println("Plant 1 selected");
-      water_level -= amountV4;
-      Blynk.virtualWrite(V6, water_level);
 }
 BLYNK_CONNECTED() {
   // Synchronize time on connection
-   rtc.begin();
+  rtc.begin();
 }
 
 void tick()
 {
   //toggle state
-  int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
-  digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
+  int state = digitalRead(2);  // get the current state of GPIO1 pin
+  digitalWrite(2, !state);     // set pin to the opposite state
 }
 
 void saveConfigCallback () {  //callback notifying us of the need to save config
@@ -172,9 +191,14 @@ void setup()
 {
   Serial.begin(9600);
   Serial.println();
-/****************************WIFI Configuration*******************************************/
+  /****************************WIFI Configuration*******************************************/
   //set led pin as output
-  pinMode(BUILTIN_LED, OUTPUT);
+  pinMode(2, OUTPUT);
+  pinMode(enA, OUTPUT);
+  pinMode(motorPin, OUTPUT);
+  digitalWrite(motorPin, LOW);
+  
+  Wateringoff();
   // start ticker with 0.5 because we start in AP mode and try to connect
   ticker.attach(0.6, tick);
 
@@ -216,7 +240,7 @@ void setup()
   // After connecting, parameter.getValue() will get you the configured value
   // id/name placeholder/prompt default length
   WiFiManagerParameter custom_blynk_token("blynk", "blynk token", blynk_token, 33);   // was 32 length
-  
+
   Serial.println(blynk_token);
 
   //WiFiManager
@@ -228,7 +252,7 @@ void setup()
   //set static ip
   // this is for connecting to Office router not GargoyleTest but it can be changed in AP mode at 192.168.4.1
   //wifiManager.setSTAStaticIPConfig(IPAddress(192,168,10,111), IPAddress(192,168,10,90), IPAddress(255,255,255,0));
-  
+
   wifiManager.addParameter(&custom_blynk_token);   //add all your parameters here
 
   //wifiManager.resetSettings();  //reset settings - for testing
@@ -236,7 +260,7 @@ void setup()
   //set minimu quality of signal so it ignores AP's under that quality
   //defaults to 8%
   //wifiManager.setMinimumSignalQuality();
-  
+
   //sets timeout until configuration portal gets turned off
   //useful to make it all retry or go to sleep, in seconds
   wifiManager.setTimeout(600);   // 10 minutes to enter data and then Wemos resets to try again.
@@ -253,7 +277,7 @@ void setup()
   Serial.println("Connected Auto-Pot Watering System :)");   //if you get here you have connected to the WiFi
   ticker.detach();
   //turn LED off
-  digitalWrite(BUILTIN_LED, HIGH);
+  digitalWrite(2, HIGH);
 
   strcpy(blynk_token, custom_blynk_token.getValue());    //read updated parameters
 
@@ -272,16 +296,16 @@ void setup()
     json.printTo(configFile);
     configFile.close();
     //end save
-     }
+  }
 
   Serial.println("local ip");
   Serial.println(WiFi.localIP());
-  
+
   Blynk.config(blynk_token);
   Blynk.connect();
   /****************************WIFI Configuration*******************************************/
-/**************************************************OTA*****************************************/
-// Port defaults to 8266
+  /**************************************************OTA*****************************************/
+  // Port defaults to 8266
   // ArduinoOTA.setPort(8266);
 
   // Hostname defaults to esp8266-[ChipID]
@@ -329,24 +353,24 @@ void setup()
   Serial.println("Ready");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
-/**************************************************OTA*****************************************/
-  pinMode(motorPin, OUTPUT);
-  led10.on();
+  /**************************************************OTA*****************************************/
   setSyncInterval(10 * 60); // Sync interval in seconds (10 minutes)
   // Display digital clock every 10 seconds
-  
+
   timer.setInterval(5000L, clockDisplay);
   NextTime();
   clockDisplay();
   Blynk.virtualWrite(V6, water_level);
   Blynk.virtualWrite(V0, 6);
   Blynk.virtualWrite(V4, 4);
-  
+  Blynk.virtualWrite(V7, 0);
+  timer.setInterval(2000L, runAuto);
 }
 
 void loop()
 {
   Blynk.run();
-  timer.run();
   ArduinoOTA.handle();
+  timer.run();
+  
 }
