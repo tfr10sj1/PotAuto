@@ -37,17 +37,19 @@ long static minV7 = 0;
 
 BlynkTimer timer;
 WidgetRTC rtc;
-int timerId = 0;
+int timerIdrunAuto = 0;
+int timerIdDisplay = 0;
+
 void clockDisplay() {
   String currentTime = "";
   String currentDate = "";
   if (newHour == 0 && newMinute == 0 && newSecond == 0 && newDay == 0) {
     currentTime = "Next: " + String(hour()) + ":" + String(minute()) + ":" + String(second());
-    currentDate = String(day()) + " " + month() + " " + year();
+    currentDate = "Date: " + String(day()) + " " + month() + " " + year();
   }
   else {
     currentTime = "Next: " + String(newHour) + ":" + newMinute + ":" + newSecond;
-    currentDate = String(newDay) + " " + month() + " " + year();
+    currentDate = "Date: " + String(newDay) + " " + month() + " " + year();
   }
   // Send time to the App
   Blynk.virtualWrite(V1, currentTime);
@@ -69,11 +71,9 @@ void NextTime() {
   long extraHour = 0;
   if (totm <= 60){
     newMinute = totm;
-    Serial.println("0 Inside nextTime in min totm and extraHour is: " + String(totm) + String(extraHour));
     if (totm == 60) {
       newMinute = 0;
       extraHour = 1;
-      Serial.println("1 Inside nextTime in min totm and extraHour is: " + String(totm) + String(extraHour));
     }
     else {
       newSecond = second();
@@ -83,15 +83,12 @@ void NextTime() {
   {
     newMinute = (totm - 60);
     if (newMinute != 60) {
-      Serial.println("1a Inside nextTime in min totm and extraHour is: " + String(totm) + String(extraHour));
     }
     newSecond = second();
     extraHour = 1;
-    Serial.println("2 Inside nextTime in min totm and extraHour is: " + String(totm) + String(extraHour));
   }
   
   long toth = hourV0 + hour() + extraHour;
-  Serial.println("3 Inside nextTime in hour totm and extraHour is: " + String(toth) + String(extraHour));
   if (toth <= 24)
   {
     newHour = toth;
@@ -120,7 +117,6 @@ void NextTime() {
 
 void runAuto() {
   if (newHour == hour() && newMinute == minute() && timeflag == 0) {
-    Serial.println("efter if runAuto");
     WateringOn();
     if (amountV4 / 2 != 1) {
       timer.setTimeout((amountV4 / 2) * 1000, Wateringoff); // stop Watwatering after (amountV4/2)*1000 ms
@@ -129,23 +125,28 @@ void runAuto() {
       timer.setTimeout(1000, Wateringoff);
     }
     water_level -= amountV4;
-    Blynk.virtualWrite(V6, water_level);
+    
 
     if (water_level < 2) {
       Blynk.notify("The water LEVEL is to LOW. Fill your Watertank and Restart the Auto-Pot!");
-      timer.disable(timerId);
+      Blynk.virtualWrite(V6, 0);
+      // Send time to the App
+      Blynk.virtualWrite(V1, "No Water!");
+      timer.disable(timerIdDisplay);
+      timer.disable(timerIdrunAuto);
+    }
+    else{
+      Blynk.virtualWrite(V6, water_level);
     }
     timeflag = 1;
     if (newSecond + 1 != second()) {
       NextTime();
-      Serial.println("NextTime runAuto");
     }
 
   }
   else {
     timeflag = 0;
   }
-  Serial.println("slutet runAuto");
 }
 
 BLYNK_WRITE(V0) {
@@ -359,14 +360,14 @@ void setup()
   setSyncInterval(10 * 60); // Sync interval in seconds (10 minutes)
   // Display digital clock every 10 seconds
 
-  timer.setInterval(5000L, clockDisplay);
+  timerIdDisplay = timer.setInterval(5000L, clockDisplay);
   NextTime();
   clockDisplay();
   Blynk.virtualWrite(V6, water_level);
   Blynk.virtualWrite(V0, 6);
   Blynk.virtualWrite(V4, 4);
   Blynk.virtualWrite(V7, 0);
-  timerId = timer.setInterval(2000L, runAuto);
+  timerIdrunAuto = timer.setInterval(2000L, runAuto);
 }
 
 void loop()
