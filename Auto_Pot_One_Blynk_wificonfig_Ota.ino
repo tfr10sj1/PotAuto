@@ -37,7 +37,7 @@ long static minV7 = 0;
 
 BlynkTimer timer;
 WidgetRTC rtc;
-
+int timerId = 0;
 void clockDisplay() {
   String currentTime = "";
   String currentDate = "";
@@ -66,16 +66,16 @@ void Wateringoff() {
 
 void NextTime() {
   long totm = minV7 + minute();
+  long extraHour = 0;
   if (totm <= 60){
     newMinute = totm;
+    Serial.println("0 Inside nextTime in min totm and extraHour is: " + String(totm) + String(extraHour));
     if (totm == 60) {
       newMinute = 0;
-      if (second() > 0) {
-        newHour = hour() + 1;
-      }
+      extraHour = 1;
+      Serial.println("1 Inside nextTime in min totm and extraHour is: " + String(totm) + String(extraHour));
     }
     else {
-      newHour = hour();
       newSecond = second();
     }
   }
@@ -83,14 +83,15 @@ void NextTime() {
   {
     newMinute = (totm - 60);
     if (newMinute != 60) {
-      newMinute = newMinute;
+      Serial.println("1a Inside nextTime in min totm and extraHour is: " + String(totm) + String(extraHour));
     }
     newSecond = second();
-    newHour = hour() +1;
-    Serial.println("Inside min Nexttime is: " + String(newMinute));
+    extraHour = 1;
+    Serial.println("2 Inside nextTime in min totm and extraHour is: " + String(totm) + String(extraHour));
   }
   
-  long toth = hourV0 + hour();
+  long toth = hourV0 + hour() + extraHour;
+  Serial.println("3 Inside nextTime in hour totm and extraHour is: " + String(toth) + String(extraHour));
   if (toth <= 24)
   {
     newHour = toth;
@@ -118,7 +119,7 @@ void NextTime() {
 }
 
 void runAuto() {
-  if (newHour == hour() && newMinute == minute() && newSecond == second() && timeflag == 0) {
+  if (newHour == hour() && newMinute == minute() && timeflag == 0) {
     Serial.println("efter if runAuto");
     WateringOn();
     if (amountV4 / 2 != 1) {
@@ -130,8 +131,9 @@ void runAuto() {
     water_level -= amountV4;
     Blynk.virtualWrite(V6, water_level);
 
-    if (water_level < 100) {
+    if (water_level < 2) {
       Blynk.notify("The water LEVEL is to LOW. Fill your Watertank and Restart the Auto-Pot!");
+      timer.disable(timerId);
     }
     timeflag = 1;
     if (newSecond + 1 != second()) {
@@ -364,7 +366,7 @@ void setup()
   Blynk.virtualWrite(V0, 6);
   Blynk.virtualWrite(V4, 4);
   Blynk.virtualWrite(V7, 0);
-  timer.setInterval(2000L, runAuto);
+  timerId = timer.setInterval(2000L, runAuto);
 }
 
 void loop()
