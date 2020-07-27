@@ -18,7 +18,7 @@ Ticker ticker;
 
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 
-char blynk_token[34] = "vqmXhqzPZVclHkQwJRUWHVJPQzZhDe8Z"; // sam_si..tfr10sj1
+char blynk_token[34] = "9Dr8hUbxIRQo6oeBN_lP61bmARzgjhqS"; // sam_si..tfr10sj1,aram = "9Dr8hUbxIRQo6oeBN_lP61bmARzgjhqS";, Sam = "7OglfGHWHXIPi-y-rHGDcjMANgIsncR1"; 
 
 bool shouldSaveConfig = false; //flag for saving data
 int enA = 15; //enable pin in l298n
@@ -30,6 +30,7 @@ int static newHour = 0;
 int static newMinute = 0;
 int static newSecond = 0;
 int static newDay = day();
+
 // numeric input Time and Amount
 double static  amountV4 = 4 ;
 long static hourV0 = 6 ;
@@ -41,16 +42,41 @@ int timerIdrunAuto = 0;
 int timerIdDisplay = 0;
 
 void clockDisplay() {
+  String newhour = "";
+  String newminute = "";
+  String newsecund = "";
+  String newday = "";
+  String newmonth = "";
   String currentTime = "";
   String currentDate = "";
-  if (newHour == 0 && newMinute == 0 && newSecond == 0 && newDay == 0) {
-    currentTime = "Next: " + String(hour()) + ":" + String(minute()) + ":" + String(second());
-    currentDate = "Date: " + String(day()) + " " + month() + " " + year();
-  }
-  else {
-    currentTime = "Next: " + String(newHour) + ":" + newMinute + ":" + newSecond;
-    currentDate = "Date: " + String(newDay) + " " + month() + " " + year();
-  }
+    
+    newhour = String(newHour);
+    newminute = String(newMinute);
+    newsecund = String(newSecond);
+    newday = String(newDay);
+    newmonth = String(month());
+    
+    if(newHour < 10){
+      newhour = '0' + newhour;
+      Serial.println("inside = " + newhour);
+    }
+    if(newMinute < 10){
+      newminute = '0' + newminute;
+    }
+    if(newSecond < 10){
+     newsecund = '0' + newsecund;
+    }
+    
+    if(newDay < 10){
+      newday = '0' + newday;
+    }
+    if(month() < 10){
+      newmonth = '0' + newmonth;
+    }
+    Serial.println(newhour + " : " + hour());
+    currentTime = "Next: " + newhour + ":" + newminute + ":" + newsecund;
+    currentDate = "Date: " + newday + " " + newmonth + " " + String(year());
+    
   // Send time to the App
   Blynk.virtualWrite(V1, currentTime);
   // Send Info to the App
@@ -161,8 +187,9 @@ BLYNK_WRITE(V4) {
 
 BLYNK_WRITE(V2) {
   if (hourV0 != 0 || minV7 != 0 || amountV4 != 0) {
+    
     String AutoTime = "Autotime: " + String(hourV0) + ":" + String(minV7);
-    String AutoAmount = "AutoAmuont: " + String(amountV4);
+    String AutoAmount = "AutoAmuont: " + String(amountV4); 
     // Send time to the App
     Blynk.virtualWrite(V1, AutoTime);
     // Send Info to the App
