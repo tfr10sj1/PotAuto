@@ -22,7 +22,7 @@ char blynk_token[34] = "vqmXhqzPZVclHkQwJRUWHVJPQzZhDe8Z"; // {"vqmXhqzPZVclHkQw
 
 bool shouldSaveConfig = false; //flag for saving data
 int enA = 15; //enable pin in l298n
-int motorPin = 14; // for mini D1 = 5, Nodemcu = 14, ESP_01 = 0;
+int motorPin = 5; // for mini D1 = 5, Nodemcu = 14, ESP_01 = 0;
 
 int static timeflag = 0;
 float static water_level = 1000;
@@ -30,6 +30,8 @@ int static newHour = 0;
 int static newMinute = 0;
 int static newSecond = 0;
 int static newDay = day();
+
+double static Runtime = 0;
 
 // numeric input Time and Amount
 double static  amountV4 = 4 ;
@@ -143,15 +145,10 @@ void NextTime() {
 }
 
 void runAuto() {
-  if (newHour == hour() && newMinute == minute() && timeflag == 0) {
+  if (SwitchV5 == 1 && newHour == hour() && newMinute == minute() && timeflag == 0) {
     WateringOn();
-    if (amountV4 / 2 != 1) {
-      timer.setTimeout((amountV4 / 2) * 1000, Wateringoff); // stop Watwatering after (amountV4/2)*1000 ms
-    }
-    else {
-      timer.setTimeout(1000, Wateringoff);
-    }
-    water_level -= amountV4;
+    timer.setTimeout(Runtime * 1000, Wateringoff); 
+    water_level -= amountV4; 
 
 
     if (water_level < 2) {
@@ -193,11 +190,13 @@ BLYNK_WRITE(V7) {
 BLYNK_WRITE(V4) {
   if(SwitchV5 == 1){
     amountV4 = param[0].asDouble();
+    Runtime = (1.1067 + amountV4)/7.8797;
   }
 }
 BLYNK_WRITE(V5) {
   SwitchV5 = param.asInt();
   if(SwitchV5 == 1){
+    clockDisplay();
     Blynk.virtualWrite(V0, hourV0);
     Blynk.virtualWrite(V4, amountV4);
     Blynk.virtualWrite(V6, water_level);
