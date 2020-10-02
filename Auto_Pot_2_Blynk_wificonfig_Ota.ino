@@ -1,4 +1,3 @@
-
 #include <FS.h>
 /* Comment this out to disable prints and save space */
 #define BLYNK_PRINT Serial
@@ -32,7 +31,9 @@ int static newSecond = 0;
 int static newDay = day();
 
 // numeric input Time and Amount
-double static  amountV4 = 4 ;
+double static  amountV4 = 4.0 ;
+double static Runtime = (1.1067 + amountV4) / 7.8797;
+
 int static SwitchV5 = 0;
 long static hourV0 = 6 ;
 long static minV7 = 0;
@@ -143,19 +144,12 @@ void NextTime() {
 }
 
 void runAuto() {
-  if (newHour == hour() && newMinute == minute() && timeflag == 0) {
+  if (SwitchV5 == 2 && newHour == hour() && newMinute == minute() && timeflag == 0) {
     WateringOn();
-    if (amountV4 / 2 != 1) {
-      timer.setTimeout((amountV4 / 2) * 1000, Wateringoff); // stop Watwatering after (amountV4/2)*1000 ms
-    }
-    else {
-      timer.setTimeout(1000, Wateringoff);
-    }
+    timer.setTimeout(Runtime * 1000, Wateringoff);
     water_level -= amountV4;
-
-
-    if (water_level < 2) {
-      if(SwitchV5 == 2){
+    if (water_level < 0) {
+      if (SwitchV5 == 2) {
         Blynk.notify("The water LEVEL is to LOW. Fill your Watertank and Restart the Auto-Pot!");
         Blynk.virtualWrite(V6, 0);
         // Send time to the App
@@ -165,8 +159,8 @@ void runAuto() {
       }
     }
     else {
-      if(SwitchV5 == 2){
-       Blynk.virtualWrite(V6, water_level);
+      if (SwitchV5 == 2) {
+        Blynk.virtualWrite(V6, water_level);
       }
     }
     timeflag = 1;
@@ -197,10 +191,21 @@ BLYNK_WRITE(V4) {
 }
 BLYNK_WRITE(V5) {
   SwitchV5 = param.asInt();
-   if(SwitchV5 == 2){
+  if (SwitchV5 == 2) {
+      if (water_level < 0) {
+      Blynk.notify("The water LEVEL is to LOW. Fill your Watertank and Restart the Auto-Pot!");
+      Blynk.virtualWrite(V6, 0);
+      // Send time to the App
+      Blynk.virtualWrite(V1, "No Water!");
+      timer.disable(timerIdDisplay);
+      timer.disable(timerIdrunAuto);
+    }
+    else{
+      Blynk.virtualWrite(V6, water_level);
+    }
     Blynk.virtualWrite(V0, hourV0);
     Blynk.virtualWrite(V4, amountV4);
-    Blynk.virtualWrite(V6, water_level);
+    
   }
 }
 
