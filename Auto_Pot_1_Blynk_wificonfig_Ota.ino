@@ -188,7 +188,7 @@ BLYNK_WRITE(V7) {
 BLYNK_WRITE(V4) {
   if(SwitchV5 == 1){
     amountV4 = param[0].asDouble();
-    Runtime = (1.1067 + amountV4) / 7.8797;
+    Runtime = double((1.1067 + amountV4) / 7.8797);
   }
 }
 BLYNK_WRITE(V5) {

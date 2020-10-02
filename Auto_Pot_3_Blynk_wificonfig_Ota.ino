@@ -146,7 +146,7 @@ void NextTime() {
 void runAuto() {
   if (SwitchV5 == 3 && newHour == hour() && newMinute == minute() && timeflag == 0) {
     WateringOn();
-    Serial.println("Runtime = " + String(Runtime));
+    //Serial.println("Runtime = " + String(Runtime));
     timer.setTimeout(Runtime * 1000, Wateringoff);
     water_level -= amountV4;
     if (water_level < 0) {
@@ -188,7 +188,7 @@ BLYNK_WRITE(V7) {
 BLYNK_WRITE(V4) {
   if(SwitchV5 == 3){
     amountV4 = param[0].asDouble();
-    Runtime = (1.1067 + amountV4) / 7.8797;
+    Runtime = double((1.1067 + amountV4) / 7.8797);
   }
 }
 BLYNK_WRITE(V5) {
