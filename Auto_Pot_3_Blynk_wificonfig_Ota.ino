@@ -32,7 +32,7 @@ int static newDay = day();
 
 // numeric input Time and Amount
 double static  amountV4 = 4.0 ;
-double static Runtime;
+double static Runtime = 0.6481; // amountV4 = 4.0
 
 int static SwitchV5 = 0;
 long static hourV0 = 6 ;
@@ -146,8 +146,9 @@ void NextTime() {
 void runAuto() {
   if (SwitchV5 == 3 && newHour == hour() && newMinute == minute() && timeflag == 0) {
     WateringOn();
-    //Serial.println("Runtime = " + String(Runtime));
+    Serial.println("Runtime1 = " + String(Runtime));
     timer.setTimeout(Runtime * 1000, Wateringoff);
+    Serial.println("Runtime2 = " + String(Runtime));
     water_level -= amountV4;
     if (water_level < 0) {
       if (SwitchV5 == 3) {
@@ -189,6 +190,7 @@ BLYNK_WRITE(V4) {
   if(SwitchV5 == 3){
     amountV4 = param[0].asDouble();
     Runtime = double((1.1067 + amountV4) / 7.8797);
+    Serial.println("BLYNK_WRITE(V4): " + String(Runtime));
   }
 }
 BLYNK_WRITE(V5) {
@@ -203,6 +205,7 @@ BLYNK_WRITE(V5) {
       timer.disable(timerIdrunAuto);
     }
     else{
+      clockDisplay();
       Blynk.virtualWrite(V6, water_level);
     }
     Blynk.virtualWrite(V0, hourV0);
