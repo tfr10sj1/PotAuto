@@ -1,5 +1,5 @@
 #include <FS.h>
-/* Comment this out to disable prints and save space */
+/* Comment this out to disable prints and save space */ 
 #define BLYNK_PRINT Serial
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
@@ -17,7 +17,7 @@ Ticker ticker;
 
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 
-char blynk_token[34] = "vqmXhqzPZVclHkQwJRUWHVJPQzZhDe8Z"; // {"vqmXhqzPZVclHkQwJRUWHVJPQzZhDe8Z" sam_si..tfr},aram = "9Dr8hUbxIRQo6oeBN_lP61bmARzgjhqS";, Sam = "7OglfGHWHXIPi-y-rHGDcjMANgIsncR1";
+char blynk_token[34] = "vqmXhqzPZVclHkQwJRUWHVJPQzZhDe8Z"; 
 
 bool shouldSaveConfig = false; //flag for saving data
 int enA = 15; //enable pin in l298n
@@ -35,7 +35,7 @@ double static  amountV4 = 4.0 ;
 double static Runtime = 0.6481; // amountV4 = 4.0
 
 int static SwitchV5 = 0;
-long static hourV0 = 6 ;
+long static hourV0 = 24 ;
 long static minV7 = 0;
 
 BlynkTimer timer;
@@ -122,7 +122,7 @@ void NextTime() {
     newHour = toth;
     if (toth == 24) {
       newHour = 0;
-      if (minute() > 0) {
+      if (newMinute > 0) {
         newDay = day() + 1;
       }
       newSecond = second();
@@ -130,6 +130,13 @@ void NextTime() {
     else {
       newSecond = second();
       newDay = day();
+    }
+  }
+  else if(toth > 24){
+    newHour = toth % 24;
+    int days = toth / 24;
+    if (newMinute > 0) {
+      newDay = day() + days;
     }
   }
   else
@@ -144,7 +151,7 @@ void NextTime() {
 }
 
 void runAuto() {
-  if (SwitchV5 == 2 && newHour == hour() && newMinute == minute() && timeflag == 0) {
+  if (newHour == hour() && newMinute == minute() && newDay ==day() &&  timeflag == 0) {
     WateringOn();
     Serial.println("Runtime1 = " + String(Runtime));
     timer.setTimeout(Runtime * 1000, Wateringoff);
@@ -204,9 +211,9 @@ BLYNK_WRITE(V5) {
       timer.disable(timerIdDisplay);
       timer.disable(timerIdrunAuto);
     }
-  else{
-    clockDisplay();
-    Blynk.virtualWrite(V6, water_level);
+    else{
+      clockDisplay();
+      Blynk.virtualWrite(V6, water_level);
     }
     Blynk.virtualWrite(V0, hourV0);
     Blynk.virtualWrite(V4, amountV4);
